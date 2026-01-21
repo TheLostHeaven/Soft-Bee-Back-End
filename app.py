@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+from dependency_injector import providers
 # from flask_mail import Mail
 # from src.utils.email_service import EmailService
 from src.shared.utils.file_handler import FileHandler
@@ -9,6 +10,8 @@ from config import get_config
 from datetime import datetime
 from flask.json.provider import DefaultJSONProvider 
 import os
+from src.core.dependencies.containers import MainContainer
+
 
 class CustomJSONProvider(DefaultJSONProvider):
     def default(self, obj):
@@ -32,6 +35,13 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     file_handler = FileHandler()
     file_handler.init_app(app)
     app.file_handler = file_handler
+
+    # Configure dependency injection
+    container = MainContainer()
+    container.config.from_dict(app.config)
+    container.db_session.override(providers.Factory(get_db))
+    container.wire(modules=["src.features.auth.presentation.api.v1.endpoints.auth"])
+    app.container = container
 
     # Inicializar base de datos y migraciones
     init_app(app)

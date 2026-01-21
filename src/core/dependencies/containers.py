@@ -9,34 +9,36 @@ from src.features.auth.application.use_cases.register_user import RegisterUserUs
 # from src.features.auth.application.use_cases.logout_user import LogoutUserUseCase
 # from src.features.auth.application.use_cases.verify_token import VerifyTokenUseCase
 
-class AuthContainer(containers.DeclarativeContainer):
-    """Contenedor para feature auth"""
+class MainContainer(containers.DeclarativeContainer):
+    """Contenedor principal"""
     
-    # Dependencias compartidas
+    # Configuración
     config = providers.Configuration()
+    
+    # Database session (compartida entre features)
     db_session = providers.Dependency()
     
-    # Repositorios
+    # Repositorios de Auth
     user_repository = providers.Factory(
         UserRepositoryImpl,
         db_session=db_session
     )
     
-    # Servicios
+    # Servicios de Auth
     password_hasher = providers.Singleton(
         PasswordHasher,
-        algorithm=config.auth.password_algorithm
+        algorithm=config.AUTH.password_algorithm
     )
     
     jwt_service = providers.Singleton(
         JWTService,
-        secret_key=config.auth.jwt_secret_key,
-        algorithm=config.auth.jwt_algorithm,
-        issuer=config.auth.jwt_issuer,
-        audience=config.auth.jwt_audience
+        secret_key=config.AUTH.jwt_secret_key,
+        algorithm=config.AUTH.jwt_algorithm,
+        issuer=config.AUTH.jwt_issuer,
+        audience=config.AUTH.jwt_audience
     )
     
-    # Casos de uso
+    # Casos de uso de Auth
     login_use_case = providers.Factory(
         LoginUserUseCase,
         user_repository=user_repository,
@@ -66,15 +68,3 @@ class AuthContainer(containers.DeclarativeContainer):
     #     VerifyTokenUseCase,
     #     token_service=jwt_service
     # )
-
-class MainContainer(containers.DeclarativeContainer):
-    """Contenedor principal"""
-    
-    # Configuración
-    config = providers.Configuration()
-    
-    # Database session (compartida entre features)
-    db_session = providers.Dependency()
-    
-    # Features
-    auth = providers.Container(AuthContainer, db_session=db_session, config=config.auth)

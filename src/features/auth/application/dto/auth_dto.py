@@ -22,6 +22,7 @@ class RegisterRequestDTO(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=8)
     confirm_password: str = Field(..., min_length=8)
+    phone: Optional[str] = None
     
     @validator('username')
     def validate_username(cls, v):

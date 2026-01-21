@@ -15,6 +15,7 @@ class RegisterSchema(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
     password: str = Field(..., min_length=8)
     confirm_password: str = Field(..., min_length=8)
+    phone: Optional[str] = None
     
     @validator('password')
     def validate_password(cls, v):

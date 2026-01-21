@@ -10,44 +10,47 @@ class FeatureRouter:
         self.registered_features: List[str] = []
     
     def register(self, feature_name: str, enabled: bool = True) -> bool:
-        """Registrar una feature individual"""
+        """Registrar una feature individual con depuración"""
         if not enabled:
             return False
-        
         try:
-            # Importar la feature
-            module = __import__(
-                f"src.features.{feature_name}",
-                fromlist=['']
-            )
-            
-            # Buscar blueprint con diferentes nombres posibles
+            # 1. Importar la feature
+            module_name = f"src.features.{feature_name}.presentation.api.v1.endpoints"
+            module = __import__(module_name, fromlist=[''])
+
+
+            # 2. Buscar blueprint
             blueprint_names = [
-                f'{feature_name}_bp',  # users_bp, products_bp, etc.
-                'auth_bp',             # Especial para auth
-                'api_bp',              # General
-                'bp',                  # Simple
+                f'{feature_name}_bp',
+                'auth_bp',
+                'api_bp',
+                'bp',
             ]
             
             blueprint = None
             for bp_name in blueprint_names:
-                if hasattr(module, bp_name):
-                    blueprint = getattr(module, bp_name)
-                    break
+                has_bp = hasattr(module, bp_name)
+                if has_bp:
+                    found_bp = getattr(module, bp_name)
+                    if found_bp: # Asegurarse de que no es None
+                        blueprint = found_bp
+                        break
             
+            # 3. Registrar el blueprint
             if blueprint:
                 self.app.register_blueprint(blueprint)
                 self.registered_features.append(feature_name)
-                print(f"✅ Feature '{feature_name}' registrada")
                 return True
             else:
-                print(f"⚠️  Feature '{feature_name}' no tiene blueprint")
                 return False
                 
         except ImportError as e:
-            print(f"❌ Feature '{feature_name}' no encontrada: {e}")
             return False
-    
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return False
+
     def register_many(self, features_config: Dict[str, bool]) -> List[str]:
         """Registrar múltiples features"""
         successful = []

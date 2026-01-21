@@ -81,7 +81,9 @@ class LoginUserUseCase:
                     "email": str(user.email),
                     "username": user.username,
                     "is_verified": user.is_verified,
-                    "is_active": user.is_active
+                    "is_active": user.is_active,
+                    "created_at": user.created_at,
+                    "updated_at": user.updated_at
                 }
             )
             
