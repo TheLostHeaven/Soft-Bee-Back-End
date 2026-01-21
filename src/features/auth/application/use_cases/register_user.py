@@ -36,13 +36,15 @@ class RegisterUserUseCase:
                 return None, "Username already exists"
             
             # 3. Hash password
-            hashed_password = self.password_hasher.hash(request.password)
+            hashed_password_tuple = self.password_hasher.hash(request.password)
+            hashed_password_string = hashed_password_tuple[0]
             
             # 4. Crear entidad de dominio
             user = User(
                 email=Email(request.email),
                 username=request.username,
-                hashed_password=hashed_password
+                hashed_password=hashed_password_string,
+                phone=request.phone
             )
             
             # 5. Guardar usuario
