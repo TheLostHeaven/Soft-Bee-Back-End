@@ -28,9 +28,18 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_DEFAULT_SENDER = os.getenv("SMTP_USER")
 
-    # Configuración de JWT
-    JWT_SECRET_KEY = os.getenv("JWT_KEY", "secret-key-default")
-    JWT_ALGORITHM = os.getenv("ALGORITHM", "HS256")
+    # Configuración de autenticación anidada
+    AUTH = {
+        "password_algorithm": os.getenv("PASSWORD_ALGORITHM", "bcrypt"),
+        "jwt_secret_key": os.getenv("JWT_KEY", "secret-key-default"),
+        "jwt_algorithm": os.getenv("JWT_ALGORITHM", "HS256"),
+        "jwt_issuer": os.getenv("JWT_ISSUER", "softbee-api"),
+        "jwt_audience": os.getenv("JWT_AUDIENCE", "softbee-app"),
+    }
+
+    # Configuración de JWT (mantener para compatibilidad si es necesario)
+    JWT_SECRET_KEY = AUTH["jwt_secret_key"]
+    JWT_ALGORITHM = AUTH["jwt_algorithm"]
     JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_SESSION", 1440))  # 24 horas
     JWT_RESET_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_EMAIL", 30))  # 30 minutos
     
@@ -44,7 +53,7 @@ class LocalConfig(Config):
     TESTING = False
     
     # Base de datos PostgreSQL local para desarrollo
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/softbee_local")
+    DATABASE_URL = os.getenv("DATABASE_URL")
     
     # URLs para desarrollo local
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
@@ -56,7 +65,7 @@ class DevelopmentConfig(Config):
     TESTING = False
     
     # Base de datos PostgreSQL de desarrollo
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/softbee_dev")
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
 class ProductionConfig(Config):
     """Configuración para entorno de producción"""
@@ -82,7 +91,7 @@ class TestingConfig(Config):
     TESTING = True
     
     # Base de datos PostgreSQL para tests
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/softbee_test")
+    DATABASE_URL = os.getenv("DATABASE_URL")
     
     # Desactivar protecciones para facilitar testing
     WTF_CSRF_ENABLED = False
