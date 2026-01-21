@@ -14,6 +14,7 @@ class User:
     username: str
     hashed_password: str
     id: Optional[str] = None
+    phone: Optional[str] = None
     is_active: bool = True
     is_verified: bool = False
     last_login: Optional[datetime] = None
