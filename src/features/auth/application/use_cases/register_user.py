@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Dict, Any
+from typing import Tuple, Optional, Dict, Any, List
 from datetime import datetime
 from ...domain.entities.user import User
 from ...domain.value_objects.email import Email

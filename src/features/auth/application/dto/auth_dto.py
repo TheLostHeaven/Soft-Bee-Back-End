@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, validator
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+from uuid import UUID
 
 class LoginRequestDTO(BaseModel):
     """DTO para request de login"""
@@ -38,12 +39,11 @@ class RegisterRequestDTO(BaseModel):
 
 class RegisterResponseDTO(BaseModel):
     """DTO para response de registro"""
-    id: str
+    id: UUID # Cambiado a UUID ya que el ID de User es UUID
     email: str
     username: str
     is_verified: bool
     created_at: datetime
-    message: str = "User registered successfully"
 
 class RefreshTokenRequestDTO(BaseModel):
     """DTO para request de refresh token"""

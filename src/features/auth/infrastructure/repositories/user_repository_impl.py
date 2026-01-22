@@ -16,22 +16,26 @@ class UserRepositoryImpl(IUserRepository):
     
     def save(self, user: User) -> User:
         user_model = UserMapper.to_model(user)
-        
         if user.id:
-            # Actualizar usuario existente
             existing = self.db_session.query(UserModel).filter_by(id=user.id).first()
             if existing:
-                for key, value in user_model.__dict__.items():
-                    if not key.startswith('_'):
-                        setattr(existing, key, value)
+                existing.email = user.email.value
+                existing.username = user.username
+                existing.hashed_password = user.hashed_password
+                existing.phone = user.phone
+                existing.is_active = user.is_active
+                existing.is_verified = user.is_verified
+                existing.last_login = user.last_login
+                existing.refresh_tokens = user.refresh_tokens
+                existing.failed_login_attempts = user.failed_login_attempts
+                existing.updated_at = datetime.datetime.utcnow()
                 user_model = existing
             else:
                 self.db_session.add(user_model)
         else:
-            # Crear nuevo usuario
             self.db_session.add(user_model)
         
-        self.db_session.commit()
+        self.db_session.flush()
         self.db_session.refresh(user_model)
         
         return UserMapper.to_entity(user_model)
@@ -70,7 +74,6 @@ class UserRepositoryImpl(IUserRepository):
             return False
         
         result = self.db_session.query(UserModel).filter_by(id=user_uuid).delete()
-        self.db_session.commit()
         return result > 0
     
     def update_last_login(self, user_id: str) -> None:
@@ -81,8 +84,7 @@ class UserRepositoryImpl(IUserRepository):
         
         user_model = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
         if user_model:
-            user_model.last_login = datetime.utcnow()
-            self.db_session.commit()
+            user_model.last_login = datetime.datetime.utcnow()
     
     def add_refresh_token(self, user_id: str, token: str) -> None:
         try:
@@ -97,7 +99,6 @@ class UserRepositoryImpl(IUserRepository):
             
             if token not in user_model.refresh_tokens:
                 user_model.refresh_tokens.append(token)
-                self.db_session.commit()
     
     def remove_refresh_token(self, user_id: str, token: str) -> bool:
         try:
@@ -108,7 +109,6 @@ class UserRepositoryImpl(IUserRepository):
         user_model = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
         if user_model and user_model.refresh_tokens and token in user_model.refresh_tokens:
             user_model.refresh_tokens.remove(token)
-            self.db_session.commit()
             return True
         
         return False

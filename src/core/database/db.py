@@ -42,6 +42,20 @@ def init_app(app):
     db.init_app(app)
     migrate.init_app(app, db)
     
+    @app.teardown_appcontext
+    def teardown_db(exception=None):
+        """Asegura que la sesión de la base de datos se cierre después de cada solicitud."""
+        session = db.session
+        try:
+            if exception is None:
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            # Optionally log the exception e
+            raise
+        finally:
+            session.remove()
+    
     with app.app_context():
         # Mostrar información del entorno y base de datos
         env = os.getenv('FLASK_ENV', 'local')
@@ -77,6 +91,7 @@ def init_app(app):
             try:
                 # Importar modelos para que SQLAlchemy los detecte
                 from src.features.auth.infrastructure.models.user_model import UserModel
+                from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
                 
                 db.create_all()
                 print("✅ Tablas de base de datos inicializadas correctamente")
