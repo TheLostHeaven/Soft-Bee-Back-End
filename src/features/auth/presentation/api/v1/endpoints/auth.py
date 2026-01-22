@@ -3,7 +3,7 @@ from dependency_injector.wiring import inject, Provide
 from pydantic import ValidationError
 from .....application.dto.auth_dto import (
     LoginRequestDTO, RegisterRequestDTO, RefreshTokenRequestDTO,
-    LogoutRequestDTO, VerifyTokenRequestDTO
+    LogoutRequestDTO, VerifyTokenRequestDTO, RegisterResponseDTO
 )
 from .....application.use_cases.login_user import LoginUserUseCase
 from .....application.use_cases.register_user import RegisterUserUseCase
@@ -70,14 +70,8 @@ def register(
     if error:
         return jsonify({"error": error}), 400
     
-    return jsonify({
-        "id": result.id,
-        "email": result.email,
-        "username": result.username,
-        "is_verified": result.is_verified,
-        "created_at": result.created_at.isoformat(),
-        "message": result.message
-    }), 201
+    # Return the full RegisterResponseDTO
+    return jsonify(result.model_dump()), 201
 
 # @auth_bp.route('/refresh', methods=['POST'])
 # @inject

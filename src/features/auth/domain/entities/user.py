@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, List
+from uuid import UUID  # Import UUID
 from ...domain.value_objects.email import Email
 from ...domain.value_objects.password import Password
 from ...domain.events.auth_events import UserRegisteredEvent, UserLoggedInEvent
@@ -13,7 +14,7 @@ class User:
     email: Email
     username: str
     hashed_password: str
-    id: Optional[str] = None
+    id: Optional[UUID] = None  # Changed type from str to UUID
     phone: Optional[str] = None
     is_active: bool = True
     is_verified: bool = False
