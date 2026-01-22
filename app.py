@@ -49,7 +49,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
 
     # from src.routes.health import create_health_routes
     # from src.routes.auth import create_auth_routes
-    features_to_register = ['auth', 'apiaries']  # Add 'apiaries'
+    features_to_register = ['auth', 'apiaries']
     registered_features = register_features(app, features_to_register)
 
     print("\n" + "="*50)

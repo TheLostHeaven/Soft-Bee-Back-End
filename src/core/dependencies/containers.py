@@ -5,6 +5,13 @@ from src.features.auth.infrastructure.services.security.password_hasher import P
 from src.features.auth.infrastructure.services.security.jwt_handler import JWTService
 from src.features.auth.application.use_cases.login_user import LoginUserUseCase
 from src.features.auth.application.use_cases.register_user import RegisterUserUseCase
+from src.features.apiaries.infrastructure.repositories.apiary_repository_impl import ApiaryRepositoryImpl
+from src.features.apiaries.application.use_cases.create_apiary import CreateApiary
+from src.features.apiaries.application.use_cases.get_apiary_by_id import GetApiaryById
+from src.features.apiaries.application.use_cases.get_all_apiaries import GetAllApiaries
+from src.features.apiaries.application.use_cases.update_apiary import UpdateApiary
+from src.features.apiaries.application.use_cases.delete_apiary import DeleteApiary
+
 # from src.features.auth.application.use_cases.refresh_token import RefreshTokenUseCase
 # from src.features.auth.application.use_cases.logout_user import LogoutUserUseCase
 # from src.features.auth.application.use_cases.verify_token import VerifyTokenUseCase
@@ -56,7 +63,40 @@ class MainContainer(containers.DeclarativeContainer):
     register_use_case = providers.Factory(
         RegisterUserUseCase,
         user_repository=user_repository,
-        password_hasher=password_hasher
+        password_hasher=password_hasher,
+        token_service=jwt_service
+    )
+    
+    # Repositorios de Apiaries
+    apiary_repository = providers.Factory(
+        ApiaryRepositoryImpl,
+        db_session=db_session
+    )
+    
+    # Casos de uso de Apiaries
+    create_apiary_use_case = providers.Factory(
+        CreateApiary,
+        apiary_repository=apiary_repository
+    )
+    
+    get_apiary_by_id_use_case = providers.Factory(
+        GetApiaryById,
+        apiary_repository=apiary_repository
+    )
+    
+    get_all_apiaries_use_case = providers.Factory(
+        GetAllApiaries,
+        apiary_repository=apiary_repository
+    )
+    
+    update_apiary_use_case = providers.Factory(
+        UpdateApiary,
+        apiary_repository=apiary_repository
+    )
+    
+    delete_apiary_use_case = providers.Factory(
+        DeleteApiary,
+        apiary_repository=apiary_repository
     )
     
     # Repositorios de Apiary
