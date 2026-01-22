@@ -56,7 +56,8 @@ class MainContainer(containers.DeclarativeContainer):
     register_use_case = providers.Factory(
         RegisterUserUseCase,
         user_repository=user_repository,
-        password_hasher=password_hasher
+        password_hasher=password_hasher,
+        token_service=jwt_service
     )
     
     # Repositorios de Apiaries
