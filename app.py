@@ -40,7 +40,8 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     container = MainContainer()
     container.config.from_dict(app.config)
     container.db_session.override(providers.Factory(get_db))
-    container.wire(modules=["src.features.auth.presentation.api.v1.endpoints.auth"])
+    container.wire(modules=["src.features.auth.presentation.api.v1.endpoints.auth",
+                            "src.features.apiaries.presentation.api.v1.endpoints.apiary_endpoints"])
     app.container = container
 
     # Inicializar base de datos y migraciones
@@ -48,7 +49,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
 
     # from src.routes.health import create_health_routes
     # from src.routes.auth import create_auth_routes
-    features_to_register = ['auth']  # Solo auth por ahora
+    features_to_register = ['auth', 'apiaries']
     registered_features = register_features(app, features_to_register)
 
     print("\n" + "="*50)
