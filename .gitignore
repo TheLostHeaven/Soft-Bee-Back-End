@@ -6,6 +6,7 @@
 .vscode
 .vs
 venv/
+migrations/
 
 # Variables de entorno - NO subir archivos con datos sensibles
 .env
