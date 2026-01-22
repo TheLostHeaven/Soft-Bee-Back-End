@@ -44,7 +44,6 @@ class RegisterResponseDTO(BaseModel):
     username: str
     is_verified: bool
     created_at: datetime
-    message: str = "User registered successfully"
 
 class RefreshTokenRequestDTO(BaseModel):
     """DTO para request de refresh token"""
