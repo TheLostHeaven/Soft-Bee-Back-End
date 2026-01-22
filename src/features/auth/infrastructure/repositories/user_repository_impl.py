@@ -16,11 +16,9 @@ class UserRepositoryImpl(IUserRepository):
     
     def save(self, user: User) -> User:
         user_model = UserMapper.to_model(user)
-        # Check if user already exists (for update scenarios)
         if user.id:
             existing = self.db_session.query(UserModel).filter_by(id=user.id).first()
             if existing:
-                # Manually update existing user attributes from the user entity
                 existing.email = user.email.value
                 existing.username = user.username
                 existing.hashed_password = user.hashed_password
@@ -30,14 +28,16 @@ class UserRepositoryImpl(IUserRepository):
                 existing.last_login = user.last_login
                 existing.refresh_tokens = user.refresh_tokens
                 existing.failed_login_attempts = user.failed_login_attempts
-                existing.updated_at = datetime.datetime.utcnow() # Update updated_at
-                user_model = existing # Set user_model to existing for refresh
+                existing.updated_at = datetime.datetime.utcnow()
+                user_model = existing
             else:
                 self.db_session.add(user_model)
         else:
             self.db_session.add(user_model)
-        self.db_session.flush() # Use flush to ensure ID is generated if new, but don't commit yet
-        self.db_session.refresh(user_model) # Refresh to get the generated ID
+        
+        self.db_session.flush()
+        self.db_session.refresh(user_model)
+        
         return UserMapper.to_entity(user_model)
     
     def find_by_id(self, user_id: str) -> Optional[User]:
@@ -74,8 +74,6 @@ class UserRepositoryImpl(IUserRepository):
             return False
         
         result = self.db_session.query(UserModel).filter_by(id=user_uuid).delete()
-        # self.db_session.commit() # Removed explicit commit
-        self.db_session.flush() # Flush to ensure delete operation takes effect within the session
         return result > 0
     
     def update_last_login(self, user_id: str) -> None:
@@ -87,8 +85,6 @@ class UserRepositoryImpl(IUserRepository):
         user_model = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
         if user_model:
             user_model.last_login = datetime.datetime.utcnow()
-            # self.db_session.commit() # Removed explicit commit
-            self.db_session.flush() # Flush to ensure update operation takes effect within the session
     
     def add_refresh_token(self, user_id: str, token: str) -> None:
         try:
@@ -103,8 +99,6 @@ class UserRepositoryImpl(IUserRepository):
             
             if token not in user_model.refresh_tokens:
                 user_model.refresh_tokens.append(token)
-                # self.db_session.commit() # Removed explicit commit
-                self.db_session.flush() # Flush to ensure update operation takes effect within the session
     
     def remove_refresh_token(self, user_id: str, token: str) -> bool:
         try:
@@ -115,8 +109,6 @@ class UserRepositoryImpl(IUserRepository):
         user_model = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
         if user_model and user_model.refresh_tokens and token in user_model.refresh_tokens:
             user_model.refresh_tokens.remove(token)
-            # self.db_session.commit() # Removed explicit commit
-            self.db_session.flush() # Flush to ensure update operation takes effect within the session
             return True
         
         return False
