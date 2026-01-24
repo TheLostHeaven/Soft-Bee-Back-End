@@ -1,12 +1,18 @@
+# src/features/auth/infrastructure/repositories/user_repository_impl.py
+
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from uuid import UUID
+from datetime import datetime  # <-- CAMBIÉ de 'import datetime' a 'from datetime import datetime'
+import logging
+
 from ...domain.entities.user import User
 from ...domain.value_objects.email import Email
 from ...application.interfaces.repositories.user_repository import IUserRepository
 from ...application.mappers.user_mapper import UserMapper
 from ..models.user_model import UserModel
-import datetime
+
+logger = logging.getLogger(__name__)
 
 class UserRepositoryImpl(IUserRepository):
     """Implementación del repositorio de usuarios con SQLAlchemy"""
@@ -28,7 +34,7 @@ class UserRepositoryImpl(IUserRepository):
                 existing.last_login = user.last_login
                 existing.refresh_tokens = user.refresh_tokens
                 existing.failed_login_attempts = user.failed_login_attempts
-                existing.updated_at = datetime.datetime.utcnow()
+                existing.updated_at = datetime.utcnow()
                 user_model = existing
             else:
                 self.db_session.add(user_model)
@@ -50,8 +56,29 @@ class UserRepositoryImpl(IUserRepository):
         return UserMapper.to_entity(user_model) if user_model else None
     
     def find_by_email(self, email: str) -> Optional[User]:
-        user_model = self.db_session.query(UserModel).filter_by(email=email).first()
-        return UserMapper.to_entity(user_model) if user_model else None
+        """
+        Busca un usuario por email.
+        
+        Args:
+            email: Puede ser string o objeto Email
+            
+        Returns:
+            Optional[User]: Usuario encontrado o None
+        """
+        try:
+            # Convertir a string si es un objeto Email
+            email_str = email.value if hasattr(email, 'value') else email
+            
+            user_model = self.db_session.query(UserModel).filter_by(email=email_str).first()
+            
+            if user_model:
+                # Mapper convierte UserModel a User con Email Value Object
+                return UserMapper.to_entity(user_model)
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error finding user by email: {str(e)}")  # <-- CAMBIÉ self.logger a logger
+            return None
     
     def find_by_username(self, username: str) -> Optional[User]:
         user_model = self.db_session.query(UserModel).filter_by(username=username).first()
@@ -76,29 +103,58 @@ class UserRepositoryImpl(IUserRepository):
         result = self.db_session.query(UserModel).filter_by(id=user_uuid).delete()
         return result > 0
     
-    def update_last_login(self, user_id: str) -> None:
+    def update_last_login(self, user_id):
+        """Actualizar último login del usuario"""
         try:
-            user_uuid = UUID(user_id)
-        except ValueError:
-            return
-        
-        user_model = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
-        if user_model:
-            user_model.last_login = datetime.datetime.utcnow()
+            # Si user_id ya es UUID, no lo conviertas de nuevo
+            if isinstance(user_id, UUID):
+                user_uuid = user_id
+            else:
+                # Si es string, conviértelo a UUID
+                try:
+                    user_uuid = UUID(str(user_id))
+                except ValueError as e:
+                    logger.error(f"Invalid UUID format: {user_id}, error: {e}")
+                    return False
+            
+            # CORRECCIÓN: Usar self.db_session en lugar de self.session
+            user = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
+            if user:
+                user.last_login = datetime.utcnow()  # <-- Ahora datetime está importado correctamente
+                self.db_session.commit()  # <-- CORRECCIÓN
+                return True
+            return False
+            
+        except Exception as e:
+            self.db_session.rollback()  # <-- CORRECCIÓN
+            logger.error(f"Error updating last login: {str(e)}")
+            return False
     
     def add_refresh_token(self, user_id: str, token: str) -> None:
+        """Añadir refresh token al usuario"""
         try:
-            user_uuid = UUID(user_id)
-        except ValueError:
-            return
-        
-        user_model = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
-        if user_model:
-            if not user_model.refresh_tokens:
-                user_model.refresh_tokens = []
+            # Manejar tanto UUID como string
+            if isinstance(user_id, UUID):
+                user_uuid = user_id
+            else:
+                try:
+                    user_uuid = UUID(str(user_id))
+                except ValueError as e:
+                    logger.error(f"Invalid UUID format: {user_id}, error: {e}")
+                    return
             
-            if token not in user_model.refresh_tokens:
-                user_model.refresh_tokens.append(token)
+            user_model = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
+            if user_model:
+                if not user_model.refresh_tokens:
+                    user_model.refresh_tokens = []
+                
+                if token not in user_model.refresh_tokens:
+                    user_model.refresh_tokens.append(token)
+                    self.db_session.commit()  # Añadir commit para guardar cambios
+        
+        except Exception as e:
+            self.db_session.rollback()
+            logger.error(f"Error adding refresh token: {str(e)}")
     
     def remove_refresh_token(self, user_id: str, token: str) -> bool:
         try:
@@ -109,6 +165,7 @@ class UserRepositoryImpl(IUserRepository):
         user_model = self.db_session.query(UserModel).filter_by(id=user_uuid).first()
         if user_model and user_model.refresh_tokens and token in user_model.refresh_tokens:
             user_model.refresh_tokens.remove(token)
+            self.db_session.commit()  # Añadir commit
             return True
         
         return False
@@ -125,3 +182,26 @@ class UserRepositoryImpl(IUserRepository):
             user_model.refresh_tokens and 
             token in user_model.refresh_tokens
         )
+    
+    def find_by_reset_token(self, reset_token: str) -> Optional[User]:
+        """
+        Busca un usuario por su token de reseteo de contraseña.
+        
+        Args:
+            reset_token: Token de reseteo
+            
+        Returns:
+            Optional[User]: Usuario encontrado o None
+        """
+        try:
+            user_model = self.db_session.query(UserModel).filter_by(
+                reset_token=reset_token
+            ).first()
+            
+            if user_model:
+                return UserMapper.to_entity(user_model)
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error finding user by reset token: {str(e)}")  # <-- CAMBIÉ
+            return None
