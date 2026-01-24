@@ -15,7 +15,9 @@ class LoginResponseDTO(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
-    user: Dict[str, Any]
+    user_id: str 
+    email: str
+    username: str
 
 class RegisterRequestDTO(BaseModel):
     """DTO para request de registro"""
@@ -43,7 +45,9 @@ class RegisterResponseDTO(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
-    user: Dict[str, Any]
+    user_id: str 
+    email: str
+    username: str
 
 class RefreshTokenRequestDTO(BaseModel):
     """DTO para request de refresh token"""
