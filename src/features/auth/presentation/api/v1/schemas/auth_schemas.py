@@ -1,5 +1,4 @@
-# src/features/auth/presentation/api/v1/schemas/auth_schemas.py - VERSIÓN PYDANTIC
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, validator, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -63,7 +62,7 @@ class UserResponseSchema(BaseModel):
     updated_at: datetime
     
     class Config:
-        from_attributes = True  # Permite crear desde ORM objects
+        from_attributes = True
 
 # Schema para respuesta de auth
 class AuthResponseSchema(BaseModel):
@@ -73,3 +72,68 @@ class AuthResponseSchema(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     user: UserResponseSchema
+
+
+
+class ForgotPasswordSchema(BaseModel):
+    """Schema para solicitar reseteo de contraseña"""
+    email: EmailStr
+        
+    class Config:
+            json_schema_extra = {
+                "example": {
+                    "email": "usuario@ejemplo.com"
+                }
+            }
+
+
+class ResetPasswordSchema(BaseModel):
+    """Schema para confirmar reseteo de contraseña"""
+    token: str = Field(..., min_length=32, max_length=32, 
+                    description="Token de reseteo (32 caracteres)")
+    new_password: str = Field(..., min_length=8, max_length=100,
+                            description="Nueva contraseña (mínimo 8 caracteres)")
+    
+    @field_validator('token')
+    @classmethod
+    def validate_token_length(cls, v: str) -> str:
+        if len(v) != 32:
+            raise ValueError('Token must be exactly 32 characters')
+        return v
+    
+    @field_validator('new_password')
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        # Puedes agregar más validaciones aquí si lo deseas
+        # Ejemplo: validar fortaleza de contraseña
+        # if not any(char.isdigit() for char in v):
+        #     raise ValueError('Password must contain at least one digit')
+        return v
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "token": "abc123def456ghi789jkl012mno345pqr",
+                "new_password": "NuevaContraseñaSegura123"
+            }
+        }
+
+class ResetPasswordResponseSchema(BaseModel):
+    """Schema para respuesta de reseteo de contraseña"""
+    success: bool
+    message: str
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "success": True,
+                "message": "Password has been reset successfully",
+                "user_id": "uuid-usuario",
+                "email": "usuario@ejemplo.com"
+            }
+        }
