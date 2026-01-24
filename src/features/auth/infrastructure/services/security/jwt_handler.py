@@ -1,12 +1,10 @@
-# src/features/auth/infrastructure/services/security/jwt_handler.py
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
-from jose import JWTError, jwt
-from jose.exceptions import JWTError, ExpiredSignatureError
+from jose import jwt
 from ....application.interfaces.services.token_service import ITokenService
 
 class JWTService(ITokenService):
-    """Implementación del servicio de tokens JWT usando python-jose"""
+    """Implementación del servicio de tokens JWT"""
     
     def __init__(
         self,
@@ -19,12 +17,11 @@ class JWTService(ITokenService):
         self.algorithm = algorithm
         self.issuer = issuer
         self.audience = audience
-    
+
     def create_access_token(self, data: Dict[str, Any], expires_in: int = 900) -> str:
-        """Crear access token JWT"""
+        """Crear access token JWT con diccionario"""
         to_encode = data.copy()
         
-        # Agregar claims estándar
         now = datetime.utcnow()
         expire = now + timedelta(seconds=expires_in)
         
@@ -42,9 +39,18 @@ class JWTService(ITokenService):
         
         return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
     
+    def generate_access_token(self, user_id: str, email: str, expires_in: int = 3600) -> str:
+        """Crear access token JWT con user_id y email"""
+        data = {
+            "sub": user_id,
+            "email": email,
+            "user_id": user_id
+        }
+        return self.create_access_token(data, expires_in)
+    
     def create_refresh_token(self, data: Dict[str, Any], expires_in: int = 2592000) -> str:
-        """Crear refresh token JWT"""
-        to_encode = data.copy()
+        """Crear refresh token JWT con diccionario"""
+        to_encode = data.copy()  # ¡Aquí está el otro .copy()!
         
         now = datetime.utcnow()
         expire = now + timedelta(seconds=expires_in)
@@ -63,50 +69,39 @@ class JWTService(ITokenService):
         
         return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
     
-    def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Verificar y decodificar token"""
+    def generate_refresh_token(self, user_id: str, email: str, expires_in: int = 2592000) -> str:
+        """Crear refresh token JWT con user_id y email"""
+        data = {
+            "sub": user_id,
+            "email": email,
+            "user_id": user_id
+        }
+        return self.create_refresh_token(data, expires_in)
+    
+    def decode_token(self, token: str) -> Dict[str, Any]:
+        """Decodificar token JWT"""
         try:
             payload = jwt.decode(
                 token,
                 self.secret_key,
                 algorithms=[self.algorithm],
                 issuer=self.issuer,
-                audience=self.audience,
-                options={
-                    "verify_exp": True,
-                    "verify_iss": bool(self.issuer),
-                    "verify_aud": bool(self.audience),
-                    "verify_signature": True
-                }
+                audience=self.audience
             )
             return payload
-        except (JWTError, ExpiredSignatureError):
-            return None
+        except Exception as e:
+            raise ValueError(f"Invalid token: {str(e)}")
     
-    def decode_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Decodificar token sin verificar"""
+    def verify_token(self, token: str) -> bool:
+        """Verificar si un token es válido"""
         try:
-            return jwt.decode(
-                token,
-                self.secret_key,
-                algorithms=[self.algorithm],
-                options={"verify_signature": False}
-            )
-        except JWTError:
-            return None
-    
-    def is_token_expired(self, token: str) -> bool:
-        """Verificar si token está expirado"""
-        payload = self.decode_token(token)
-        if not payload or "exp" not in payload:
+            self.decode_token(token)
             return True
+        except:
+            return False
         
-        expiry = datetime.fromtimestamp(payload["exp"])
-        return expiry < datetime.utcnow()
-    
-    def get_token_expiry(self, token: str) -> Optional[datetime]:
-        """Obtener fecha de expiración del token"""
-        payload = self.decode_token(token)
-        if payload and "exp" in payload:
-            return datetime.fromtimestamp(payload["exp"])
-        return None
+    def generate_reset_token(self) -> str:
+        """Generar token de reseteo de contraseña"""
+        import secrets
+        # Generar token seguro de 32 caracteres
+        return secrets.token_urlsafe(32)
