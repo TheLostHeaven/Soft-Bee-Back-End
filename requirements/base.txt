@@ -46,3 +46,7 @@ certifi==2025.6.15
 charset-normalizer==3.4.2
 colorama==0.4.6
 idna==3.10
+gunicorn==21.2.0
+sentry-sdk[flask]==2.14.0
+Flask-Limiter==3.5.0
+defusedxml==0.7.1
