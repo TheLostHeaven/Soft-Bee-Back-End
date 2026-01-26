@@ -35,7 +35,6 @@ def init_app(app):
         database_url += f"{separator}sslmode=require"
 
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    print(f"🛠️  SQLALCHEMY_DATABASE_URI configurada: {app.config['SQLALCHEMY_DATABASE_URI']}")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Inicializar SQLAlchemy y Flask-Migrate
@@ -70,7 +69,6 @@ def init_app(app):
             # Ocultar credenciales en la URL para seguridad
             safe_uri = db_uri.split('@')[-1] if '@' in db_uri else db_uri
             print(f"📂 Usando base de datos: {db_type}")
-            print(f"🔗 Servidor PostgreSQL: {safe_uri.split('/')[0]}")
         else:
             print(f"🚀 Iniciando aplicación en entorno: {env}")
             print(f"📂 Usando base de datos: desconocida")
