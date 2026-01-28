@@ -24,6 +24,8 @@ class UserMapper:
                 email=email_obj,   # <-- Email Value Object
                 username=user_model.username,
                 hashed_password=user_model.hashed_password,
+                first_name=user_model.first_name,
+                last_name=user_model.last_name,
                 phone=user_model.phone,
                 is_active=user_model.is_active,
                 is_verified=user_model.is_verified,
@@ -56,6 +58,8 @@ class UserMapper:
                 email=email_str,  # <-- Guardar como string
                 username=user.username,
                 hashed_password=user.hashed_password,
+                first_name=user.first_name,
+                last_name=user.last_name,
                 phone=user.phone,
                 is_active=user.is_active,
                 is_verified=user.is_verified,

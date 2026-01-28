@@ -28,6 +28,8 @@ class UserRepositoryImpl(IUserRepository):
                 existing.email = user.email.value
                 existing.username = user.username
                 existing.hashed_password = user.hashed_password
+                existing.first_name = user.first_name
+                existing.last_name = user.last_name
                 existing.phone = user.phone
                 existing.is_active = user.is_active
                 existing.is_verified = user.is_verified
