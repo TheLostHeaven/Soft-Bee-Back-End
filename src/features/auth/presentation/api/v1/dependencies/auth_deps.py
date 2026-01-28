@@ -14,15 +14,17 @@ def get_current_user_id():
     """Obtener ID del usuario actual"""
     return getattr(g, 'current_user_id', None)
 
-@inject
-def token_required(
-    user_repository: IUserRepository = Provide[Container.auth.user_repository],
-    jwt_service: JWTService = Provide[Container.auth.jwt_service]
-):
+def token_required():
     """Decorator para requerir token JWT válido"""
     def decorator(f):
         @wraps(f)
-        def decorated_function(*args, **kwargs):
+        @inject
+        def decorated_function(
+            *args,
+            user_repository: IUserRepository = Provide[Container.user_repository],
+            jwt_service: JWTService = Provide[Container.jwt_service],
+            **kwargs
+        ):
             auth_header = request.headers.get('Authorization')
             
             if not auth_header:
@@ -64,8 +66,8 @@ def token_required(
 
 @inject
 def admin_required(
-    user_repository: IUserRepository = Provide[Container.auth.user_repository],
-    jwt_service: JWTService = Provide[Container.auth.jwt_service]
+    user_repository: IUserRepository = Provide[Container.user_repository],
+    jwt_service: JWTService = Provide[Container.jwt_service]
 ):
     """Decorator para requerir rol de admin"""
     def decorator(f):
