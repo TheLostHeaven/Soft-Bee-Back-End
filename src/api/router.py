@@ -24,6 +24,7 @@ class FeatureRouter:
                 f'{feature_name}_bp',
                 'auth_bp',
                 'api_bp',
+                'user_bp', # Added user_bp
                 'bp',
             ]
             

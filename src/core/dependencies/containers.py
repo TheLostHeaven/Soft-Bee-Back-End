@@ -1,6 +1,7 @@
 # src/core/dependencies/containers.py
 from dependency_injector import containers, providers
-from src.features.auth.infrastructure.repositories.user_repository_impl import UserRepositoryImpl
+from src.features.auth.infrastructure.repositories.user_repository_impl import UserRepositoryImpl as AuthUserRepositoryImpl
+from src.features.user.infrastructure.repositories.user_repository_impl import UserRepositoryImpl as UserFeatureRepositoryImpl
 from src.features.auth.infrastructure.services.security.password_hasher import PasswordHasher
 from src.features.auth.infrastructure.services.security.jwt_handler import JWTService
 from src.features.auth.application.use_cases.login_user import LoginUserUseCase
@@ -14,6 +15,10 @@ from src.features.apiaries.application.use_cases.get_apiary_by_id import GetApia
 from src.features.apiaries.application.use_cases.get_all_apiaries import GetAllApiaries
 from src.features.apiaries.application.use_cases.update_apiary import UpdateApiary
 from src.features.apiaries.application.use_cases.delete_apiary import DeleteApiary
+
+from src.features.user.application.use_cases.get_user import GetUserUseCase
+from src.features.user.application.use_cases.update_user import UpdateUserUseCase
+from src.features.user.application.use_cases.delete_user import DeleteUserUseCase
 
 from src.features.auth.application.use_cases.forgot_password import ForgotPasswordUseCase
 from src.features.auth.application.use_cases.reset_password import ResetPasswordUseCase
@@ -29,8 +34,8 @@ class MainContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     db_session = providers.Dependency()
 
-    user_repository = providers.Factory(
-        UserRepositoryImpl,
+    auth_user_repository = providers.Factory(
+        AuthUserRepositoryImpl,
         db_session=db_session
     )
 
@@ -65,28 +70,28 @@ class MainContainer(containers.DeclarativeContainer):
     
     login_use_case = providers.Factory(
         LoginUserUseCase,
-        user_repository=user_repository,
+        user_repository=auth_user_repository,
         token_service=jwt_service,
         password_service=password_service
     )
     
     register_use_case = providers.Factory(
         RegisterUserUseCase,
-        user_repository=user_repository,
+        user_repository=auth_user_repository,
         password_service=password_service,
         token_service=jwt_service
     )
     
     forgot_password_use_case = providers.Factory(
         ForgotPasswordUseCase,
-        user_repository=user_repository,
+        user_repository=auth_user_repository,
         email_service=email_service,
         token_service=jwt_service
     )
     
     reset_password_use_case = providers.Factory(
         ResetPasswordUseCase,
-        user_repository=user_repository,
+        user_repository=auth_user_repository,
         password_service=password_service,
         token_service=jwt_service 
     )
@@ -120,4 +125,24 @@ class MainContainer(containers.DeclarativeContainer):
     delete_apiary_use_case = providers.Factory(
         DeleteApiary,
         apiary_repository=apiary_repository
+    )
+
+    user_feature_repository = providers.Factory(
+        UserFeatureRepositoryImpl,
+        db_session=db_session
+    )
+
+    get_user_use_case = providers.Factory(
+        GetUserUseCase,
+        user_repository=user_feature_repository
+    )
+
+    update_user_use_case = providers.Factory(
+        UpdateUserUseCase,
+        user_repository=user_feature_repository
+    )
+
+    delete_user_use_case = providers.Factory(
+        DeleteUserUseCase,
+        user_repository=user_feature_repository
     )
