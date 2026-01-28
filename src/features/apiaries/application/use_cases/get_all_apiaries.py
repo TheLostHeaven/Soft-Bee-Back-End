@@ -7,6 +7,6 @@ class GetAllApiaries:
     def __init__(self, apiary_repository: ApiaryRepository):
         self.apiary_repository = apiary_repository
 
-    def execute(self) -> List[ApiaryDto]:
-        apiaries = self.apiary_repository.get_all_apiaries()
+    def execute(self, user_id: str) -> List[ApiaryDto]:
+        apiaries = self.apiary_repository.get_all_apiaries_by_user_id(user_id)
         return [ApiaryMapper.to_dto(apiary) for apiary in apiaries]

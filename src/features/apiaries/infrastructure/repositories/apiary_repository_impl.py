@@ -16,9 +16,21 @@ class ApiaryRepositoryImpl(ApiaryRepository):
         apiary_models = self.db_session.query(ApiaryModel).all()
         return [ApiaryMapper.to_entity(model) for model in apiary_models]
 
-    def get_apiary_by_id(self, apiary_id: int) -> Optional[Apiary]:
+    def get_all_apiaries_by_user_id(self, user_id: str) -> List[Apiary]:
+        apiary_models = self.db_session.query(ApiaryModel).filter(ApiaryModel.user_id == user_id).all()
+        return [ApiaryMapper.to_entity(model) for model in apiary_models]
+
+    def get_apiary_by_id(self, apiary_id: str) -> Optional[Apiary]:
         
         apiary_model = self.db_session.query(ApiaryModel).filter_by(id=apiary_id).first()
+        return ApiaryMapper.to_entity(apiary_model) if apiary_model else None
+    
+    def get_apiary_by_id_and_user_id(self, apiary_id: str, user_id: str) -> Optional[Apiary]:
+        apiary_model = self.db_session.query(ApiaryModel).filter_by(id=apiary_id, user_id=user_id).first()
+        return ApiaryMapper.to_entity(apiary_model) if apiary_model else None
+    
+    def find_by_user_id_and_name(self, user_id: str, name: str) -> Optional[Apiary]:
+        apiary_model = self.db_session.query(ApiaryModel).filter_by(user_id=user_id, name=name).first()
         return ApiaryMapper.to_entity(apiary_model) if apiary_model else None
     
     def create_apiary(self, apiary: Apiary) -> Apiary:
@@ -46,7 +58,7 @@ class ApiaryRepositoryImpl(ApiaryRepository):
         self.db_session.refresh(existing_apiary_model)
         return ApiaryMapper.to_entity(existing_apiary_model)
 
-    def delete_apiary(self, apiary_id: int) -> None:
+    def delete_apiary(self, apiary_id: str) -> None:
             
         apiary_model = self.db_session.query(ApiaryModel).filter_by(id=apiary_id).first()
         if apiary_model:

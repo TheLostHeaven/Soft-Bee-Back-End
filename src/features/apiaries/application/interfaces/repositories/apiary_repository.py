@@ -8,7 +8,19 @@ class ApiaryRepository(ABC):
         pass
 
     @abstractmethod
+    def get_all_apiaries_by_user_id(self, user_id: str) -> List[Apiary]:
+        pass
+
+    @abstractmethod
     def get_apiary_by_id(self, apiary_id: str) -> Optional[Apiary]:
+        pass
+    
+    @abstractmethod
+    def get_apiary_by_id_and_user_id(self, apiary_id: str, user_id: str) -> Optional[Apiary]:
+        pass
+
+    @abstractmethod
+    def find_by_user_id_and_name(self, user_id: str, name: str) -> Optional[Apiary]:
         pass
 
     @abstractmethod

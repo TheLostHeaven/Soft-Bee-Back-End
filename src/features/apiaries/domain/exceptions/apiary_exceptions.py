@@ -7,3 +7,8 @@ class ApiaryAlreadyExistsError(Exception):
     def __init__(self, message="Apiary with this name already exists"):
         self.message = message
         super().__init__(self.message)
+
+class PermissionDeniedException(Exception):
+    def __init__(self, message="Permission denied"):
+        self.message = message
+        super().__init__(self.message)
