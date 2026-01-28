@@ -1,8 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
 from dependency_injector import providers
-# from flask_mail import Mail
-# from src.utils.email_service import EmailService
 from src.shared.utils.file_handler import FileHandler
 from src.core.database.db import init_app, get_db
 from src.api.router import register_features
@@ -41,7 +39,8 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     container.config.from_dict(app.config)
     container.db_session.override(providers.Factory(get_db))
     container.wire(modules=["src.features.auth.presentation.api.v1.endpoints.auth",
-                            "src.features.apiaries.presentation.api.v1.endpoints.apiary_endpoints"])
+                            "src.features.apiaries.presentation.api.v1.endpoints.apiary_endpoints",
+                            "src.features.user.presentation.api.v1.endpoints.users"])
     app.container = container
 
     # Inicializar base de datos y migraciones
@@ -49,7 +48,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
 
     # from src.routes.health import create_health_routes
     # from src.routes.auth import create_auth_routes
-    features_to_register = ['auth', 'apiaries']
+    features_to_register = ['auth', 'apiaries', 'user']
     registered_features = register_features(app, features_to_register)
 
     print("\n" + "="*50)
