@@ -13,6 +13,7 @@ from src.features.apiaries.infrastructure.repositories.apiary_repository_impl im
 from src.features.apiaries.application.use_cases.create_apiary import CreateApiary
 from src.features.apiaries.application.use_cases.get_apiary_by_id import GetApiaryById
 from src.features.apiaries.application.use_cases.get_all_apiaries import GetAllApiaries
+from src.features.apiaries.application.use_cases.get_apiaries_by_user_id import GetApiariesByUserId
 from src.features.apiaries.application.use_cases.update_apiary import UpdateApiary
 from src.features.apiaries.application.use_cases.delete_apiary import DeleteApiary
 
@@ -109,6 +110,11 @@ class MainContainer(containers.DeclarativeContainer):
     
     get_apiary_by_id_use_case = providers.Factory(
         GetApiaryById,
+        apiary_repository=apiary_repository
+    )
+
+    get_apiaries_by_user_id_use_case = providers.Factory(
+        GetApiariesByUserId,
         apiary_repository=apiary_repository
     )
     
