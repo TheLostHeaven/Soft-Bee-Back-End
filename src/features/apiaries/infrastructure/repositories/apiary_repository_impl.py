@@ -5,6 +5,7 @@ from src.features.apiaries.application.interfaces.repositories.apiary_repository
 from src.features.apiaries.application.mappers.apiary_mapper import ApiaryMapper
 from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
 import datetime
+from uuid import UUID
 
 class ApiaryRepositoryImpl(ApiaryRepository):
     """Implementation of the apiary repository with SQLAlchemy"""
@@ -16,7 +17,7 @@ class ApiaryRepositoryImpl(ApiaryRepository):
         apiary_models = self.db_session.query(ApiaryModel).all()
         return [ApiaryMapper.to_entity(model) for model in apiary_models]
 
-    def get_apiary_by_id(self, apiary_id: int) -> Optional[Apiary]:
+    def get_apiary_by_id(self, apiary_id: UUID) -> Optional[Apiary]:
         
         apiary_model = self.db_session.query(ApiaryModel).filter_by(id=apiary_id).first()
         return ApiaryMapper.to_entity(apiary_model) if apiary_model else None
@@ -46,7 +47,7 @@ class ApiaryRepositoryImpl(ApiaryRepository):
         self.db_session.refresh(existing_apiary_model)
         return ApiaryMapper.to_entity(existing_apiary_model)
 
-    def delete_apiary(self, apiary_id: int) -> None:
+    def delete_apiary(self, apiary_id: UUID) -> None:
             
         apiary_model = self.db_session.query(ApiaryModel).filter_by(id=apiary_id).first()
         if apiary_model:

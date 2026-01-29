@@ -1,8 +1,9 @@
 from pydantic import BaseModel
 from typing import Optional
+from uuid import UUID
 
 class ApiaryResponseSchema(BaseModel):
-    id: int
+    id: UUID
     user_id: str
     name: str
     location: Optional[str]

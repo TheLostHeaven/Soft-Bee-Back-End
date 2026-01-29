@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
+from uuid import UUID
 from src.features.apiaries.domain.entities.apiary import Apiary
 
 class ApiaryRepository(ABC):
@@ -8,7 +9,7 @@ class ApiaryRepository(ABC):
         pass
 
     @abstractmethod
-    def get_apiary_by_id(self, apiary_id: str) -> Optional[Apiary]:
+    def get_apiary_by_id(self, apiary_id: UUID) -> Optional[Apiary]:
         pass
 
     @abstractmethod
@@ -20,5 +21,5 @@ class ApiaryRepository(ABC):
         pass
 
     @abstractmethod
-    def delete_apiary(self, apiary_id: str) -> None:
+    def delete_apiary(self, apiary_id: UUID) -> None:
         pass

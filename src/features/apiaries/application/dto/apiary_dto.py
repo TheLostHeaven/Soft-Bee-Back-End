@@ -1,9 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 class ApiaryDto(BaseModel):
-    id: int
+    id: UUID
     user_id: str
     name: str
     location: Optional[str]
