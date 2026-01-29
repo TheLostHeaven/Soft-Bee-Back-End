@@ -13,6 +13,10 @@ class ApiaryRepository(ABC):
         pass
 
     @abstractmethod
+    def get_apiaries_by_user_id(self, user_id: UUID) -> List[Apiary]:
+        pass
+
+    @abstractmethod
     def create_apiary(self, apiary: Apiary) -> Apiary:
         pass
 

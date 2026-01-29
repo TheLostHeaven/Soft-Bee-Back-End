@@ -21,6 +21,10 @@ class ApiaryRepositoryImpl(ApiaryRepository):
         
         apiary_model = self.db_session.query(ApiaryModel).filter_by(id=apiary_id).first()
         return ApiaryMapper.to_entity(apiary_model) if apiary_model else None
+
+    def get_apiaries_by_user_id(self, user_id: UUID) -> List[Apiary]:
+        apiary_models = self.db_session.query(ApiaryModel).filter_by(user_id=user_id).all()
+        return [ApiaryMapper.to_entity(model) for model in apiary_models]
     
     def create_apiary(self, apiary: Apiary) -> Apiary:
         apiary_model = ApiaryMapper.to_model(apiary)
