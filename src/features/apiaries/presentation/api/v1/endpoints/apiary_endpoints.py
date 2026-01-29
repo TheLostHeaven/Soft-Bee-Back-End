@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
 from http import HTTPStatus
-from src.features.apiaries.application.dto.apiary_dto import ApiaryDto
 from src.features.apiaries.application.use_cases.create_apiary import CreateApiary
 from src.features.apiaries.application.use_cases.get_apiary_by_id import GetApiaryById
 from src.features.apiaries.application.use_cases.get_all_apiaries import GetAllApiaries
+from src.features.apiaries.application.use_cases.get_apiaries_by_user_id import GetApiariesByUserId
 from src.features.apiaries.application.use_cases.update_apiary import UpdateApiary
 from src.features.apiaries.application.use_cases.delete_apiary import DeleteApiary
 from src.features.apiaries.presentation.api.v1.schemas.apiary_schemas import (
@@ -48,6 +48,17 @@ def get_apiary_by_id_endpoint(apiary_id: str):
         get_apiary_by_id_use_case: GetApiaryById = current_app.container.get_apiary_by_id_use_case()
         apiary_dto = get_apiary_by_id_use_case.execute(apiary_id)
         return jsonify(ApiaryResponseSchema.from_orm(apiary_dto).dict()), HTTPStatus.OK
+    except ApiaryNotFoundError as e:
+        return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+@apiaries_bp.route("/user/<string:user_id>", methods=['GET'])
+def get_apiaries_by_user_id_endpoint(user_id: str):
+    try:
+        get_apiaries_by_user_id_use_case: GetApiariesByUserId = current_app.container.get_apiaries_by_user_id_use_case()
+        apiaries_dto = get_apiaries_by_user_id_use_case.execute(user_id)
+        return jsonify([ApiaryResponseSchema.from_orm(apiary).dict() for apiary in apiaries_dto]), HTTPStatus.OK
     except ApiaryNotFoundError as e:
         return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND
     except Exception as e:
