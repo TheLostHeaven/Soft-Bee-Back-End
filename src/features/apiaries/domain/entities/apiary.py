@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
+from uuid import UUID # Import UUID
 
 @dataclass
 class Apiary:
-    id: int
+    id: UUID
     user_id: str
     name: str
     location: Optional[str]

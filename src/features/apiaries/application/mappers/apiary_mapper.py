@@ -16,7 +16,7 @@ class ApiaryMapper:
             id=apiary_model.id,
             name=apiary_model.name,
             location=apiary_model.location,
-            user_id=str(apiary_model.user_id),
+            user_id=apiary_model.user_id,
             beehives_count=apiary_model.beehives_count,
             treatments=apiary_model.treatments,
             created_at=apiary_model.created_at,
@@ -33,7 +33,7 @@ class ApiaryMapper:
             id=apiary_entity.id if apiary_entity.id else None,
             name=apiary_entity.name,
             location=apiary_entity.location,
-            user_id=UUID(apiary_entity.user_id),
+            user_id=apiary_entity.user_id,
             beehives_count=apiary_entity.beehives_count,
             treatments=apiary_entity.treatments,
             created_at=apiary_entity.created_at,
@@ -50,7 +50,7 @@ class ApiaryMapper:
             id=apiary_entity.id,
             name=apiary_entity.name,
             location=apiary_entity.location,
-            user_id=apiary_entity.user_id,
+            user_id=str(apiary_entity.user_id),
             beehives_count=apiary_entity.beehives_count,
             treatments=apiary_entity.treatments,
             created_at=apiary_entity.created_at,
@@ -58,7 +58,7 @@ class ApiaryMapper:
         )
 
     @staticmethod
-    def from_create_dto_to_entity(create_dto: CreateApiaryDto, apiary_id: int = None) -> Apiary:
+    def from_create_dto_to_entity(create_dto: CreateApiaryDto, apiary_id: UUID = None) -> Apiary:
         """Converts CreateApiaryDto to an Apiary entity"""
         return Apiary(
             id=apiary_id,
