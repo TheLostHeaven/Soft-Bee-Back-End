@@ -23,6 +23,7 @@ class LoginUserUseCase:
     
     def execute(self, request_dto: LoginRequestDTO):
         try:
+            request_dto.email = request_dto.email.lower()
             logger.info(f"Attempting login for email: {request_dto.email}")
             
             # 1. Buscar usuario
