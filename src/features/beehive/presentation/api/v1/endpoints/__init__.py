@@ -1,12 +1,3 @@
-from flask import Blueprint
-
-beehive_bp = Blueprint(
-    'beehive',
-    __name__,
-    url_prefix='/api/v1/beehive'
-)
-
-# Importar rutas
-from . import routes
+from .beehive_endpoints import beehive_bp
 
 __all__ = ['beehive_bp']
