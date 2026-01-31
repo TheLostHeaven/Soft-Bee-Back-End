@@ -25,6 +25,7 @@ class FeatureRouter:
                 'auth_bp',
                 'api_bp',
                 'user_bp', # Added user_bp
+                'beehive_bp',
                 'bp',
             ]
             

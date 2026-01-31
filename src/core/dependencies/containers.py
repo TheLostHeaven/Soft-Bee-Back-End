@@ -2,7 +2,6 @@
 from dependency_injector import containers, providers
 from src.features.auth.infrastructure.repositories.user_repository_impl import UserRepositoryImpl as AuthUserRepositoryImpl
 from src.features.user.infrastructure.repositories.user_repository_impl import UserRepositoryImpl as UserFeatureRepositoryImpl
-from src.features.auth.infrastructure.services.security.password_hasher import PasswordHasher
 from src.features.auth.infrastructure.services.security.jwt_handler import JWTService
 from src.features.auth.application.use_cases.login_user import LoginUserUseCase
 from src.features.auth.application.use_cases.register_user import RegisterUserUseCase
@@ -26,6 +25,12 @@ from src.features.auth.application.use_cases.reset_password import ResetPassword
 from src.features.auth.application.interfaces.services.email_service import IEmailService
 from src.features.auth.infrastructure.services.password_service_impl import PasswordServiceImpl
 from config import get_config
+from src.features.beehive.infrastructure.repositories.beehive_repository_impl import BeehiveRepositoryImpl
+from src.features.beehive.application.use_cases.create_beehive import CreateBeehiveUseCase
+from src.features.beehive.application.use_cases.get_beehive_by_id import GetBeehiveByIdUseCase
+from src.features.beehive.application.use_cases.get_all_beehives_by_apiary_id import GetAllBeehivesByApiaryIdUseCase
+from src.features.beehive.application.use_cases.update_beehive import UpdateBeehiveUseCase
+from src.features.beehive.application.use_cases.delete_beehive import DeleteBeehiveUseCase
 
 config_obj = get_config()
 
@@ -54,7 +59,7 @@ class MainContainer(containers.DeclarativeContainer):
     jwt_service = providers.Singleton(
         JWTService,
         secret_key=config_obj.AUTH["jwt_secret_key"],
-        algorithm=config_obj.AUTH["jwt_algorithm"],   
+        algorithm=config_obj.AUTH["jwt_algorithm"],
         issuer=config_obj.AUTH["jwt_issuer"],
         audience=config_obj.AUTH["jwt_audience"]
     )
@@ -151,4 +156,34 @@ class MainContainer(containers.DeclarativeContainer):
     delete_user_use_case = providers.Factory(
         DeleteUserUseCase,
         user_repository=user_feature_repository
+    )
+
+    beehive_repository = providers.Factory(
+        BeehiveRepositoryImpl,
+        db_session=db_session
+    )
+
+    create_beehive_use_case = providers.Factory(
+        CreateBeehiveUseCase,
+        repository=beehive_repository
+    )
+
+    get_beehive_by_id_use_case = providers.Factory(
+        GetBeehiveByIdUseCase,
+        repository=beehive_repository
+    )
+
+    get_all_beehives_by_apiary_id_use_case = providers.Factory(
+        GetAllBeehivesByApiaryIdUseCase,
+        repository=beehive_repository
+    )
+
+    update_beehive_use_case = providers.Factory(
+        UpdateBeehiveUseCase,
+        repository=beehive_repository
+    )
+
+    delete_beehive_use_case = providers.Factory(
+        DeleteBeehiveUseCase,
+        repository=beehive_repository
     )
