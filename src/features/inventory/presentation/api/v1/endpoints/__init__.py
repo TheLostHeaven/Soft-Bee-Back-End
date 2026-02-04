@@ -1,12 +1,3 @@
-from flask import Blueprint
+from .inventory_endpoints import inventory_bp
 
-inventory_bp = Blueprint(
-    'inventory',
-    __name__,
-    url_prefix='/api/v1/inventory'
-)
-
-# Importar rutas
-from . import routes
-
-__all__ = ['inventory_bp']
+__all__ = ["inventory_bp"]
