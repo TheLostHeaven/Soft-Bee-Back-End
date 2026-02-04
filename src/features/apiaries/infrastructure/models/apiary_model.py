@@ -22,6 +22,7 @@ class ApiaryModel(Base):
     # Define relationship to User
     beekeeper = relationship("UserModel", backref="apiaries")
     hives = relationship("BeehiveModel", back_populates="apiary", cascade="all, delete-orphan")
+    inventories = relationship("InventoryModel", back_populates="apiary", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Apiary(id={self.id}, name={self.name}, user_id={self.user_id}, beehives_count={self.beehives_count})>"

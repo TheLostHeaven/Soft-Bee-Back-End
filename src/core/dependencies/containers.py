@@ -31,6 +31,7 @@ from src.features.beehive.application.use_cases.get_beehive_by_id import GetBeeh
 from src.features.beehive.application.use_cases.get_all_beehives_by_apiary_id import GetAllBeehivesByApiaryIdUseCase
 from src.features.beehive.application.use_cases.update_beehive import UpdateBeehiveUseCase
 from src.features.beehive.application.use_cases.delete_beehive import DeleteBeehiveUseCase
+from src.features.inventory.application.dependency_injection import InventoryContainer
 
 config_obj = get_config()
 
@@ -39,6 +40,11 @@ class MainContainer(containers.DeclarativeContainer):
 
     config = providers.Configuration()
     db_session = providers.Dependency()
+
+    inventory_container = providers.Container(
+        InventoryContainer,
+        db_session=db_session,
+    )
 
     auth_user_repository = providers.Factory(
         AuthUserRepositoryImpl,
@@ -110,7 +116,8 @@ class MainContainer(containers.DeclarativeContainer):
 
     create_apiary_use_case = providers.Factory(
         CreateApiary,
-        apiary_repository=apiary_repository
+        apiary_repository=apiary_repository,
+        create_inventory_use_case=inventory_container.create_inventory_use_case
     )
     
     get_apiary_by_id_use_case = providers.Factory(
