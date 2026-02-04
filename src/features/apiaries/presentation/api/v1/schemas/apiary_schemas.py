@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
+from datetime import datetime
 
 class ApiaryResponseSchema(BaseModel):
     id: UUID
@@ -9,6 +10,8 @@ class ApiaryResponseSchema(BaseModel):
     location: Optional[str]
     beehives_count: int
     treatments: bool
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
