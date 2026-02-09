@@ -28,7 +28,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     config_class = get_config()
     app.config.from_object(config_class)
 
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     file_handler = FileHandler()
     file_handler.init_app(app)

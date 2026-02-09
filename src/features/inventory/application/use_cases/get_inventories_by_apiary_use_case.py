@@ -11,4 +11,4 @@ class GetInventoriesByApiaryUseCase:
         self.repository = repository
 
     def execute(self, apiary_id: UUID) -> List[Inventory]:
-        return self.repository.get_all(apiary_id)
+        return self.repository.get_inventories_by_apiary(apiary_id)

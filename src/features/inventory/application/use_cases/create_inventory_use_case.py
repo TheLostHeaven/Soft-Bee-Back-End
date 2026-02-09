@@ -21,4 +21,4 @@ class CreateInventoryUseCase:
             created_at=None,
             updated_at=None,
         )
-        return self.repository.create(inventory)
+        return self.repository.create_inventory(inventory)

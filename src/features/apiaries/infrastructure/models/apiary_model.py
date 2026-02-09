@@ -3,10 +3,11 @@ from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
-from src.core.database.db import Base
+from src.core.database.db import db
 from src.features.auth.infrastructure.models.user_model import UserModel # Import UserModel
+from src.features.inventory.infrastructure.models.inventory_model import InventoryModel # NEW: Import InventoryModel
 
-class ApiaryModel(Base):
+class ApiaryModel(db.Model):
     """SQLAlchemy model for apiaries"""
     __tablename__ = "apiaries"
     

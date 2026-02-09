@@ -16,8 +16,9 @@ class RegisterSchema(BaseModel):
     confirm_password: str = Field(..., min_length=8)
     phone: Optional[str] = None
     
-    @validator('password')
-    def validate_password(cls, v):
+    @field_validator('password')
+    @classmethod
+    def validate_password_strength(cls, v):
         """Validar fortaleza del password"""
         import re
         if not re.search(r'[A-Z]', v):
@@ -30,10 +31,11 @@ class RegisterSchema(BaseModel):
             raise ValueError('Must contain special character')
         return v
     
-    @validator('confirm_password')
-    def passwords_match(cls, v, values):
+    @field_validator('confirm_password')
+    @classmethod
+    def passwords_match(cls, v, info): # Changed 'values' to 'info' as per Pydantic V2 validator signature
         """Verificar que los passwords coincidan"""
-        if 'password' in values and v != values['password']:
+        if 'password' in info.data and v != info.data['password']: # Access values via info.data
             raise ValueError('Passwords do not match')
         return v
 

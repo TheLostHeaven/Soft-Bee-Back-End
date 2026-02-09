@@ -24,8 +24,8 @@ class CreateInventoryDTO(BaseModel):
     name: str
     quantity: int
     unit: str
-    description: Optional[str]
-    minimum_stock: int
+    description: Optional[str] = None
+    minimum_stock: int = 1
 
 
 class UpdateInventoryDTO(BaseModel):

@@ -8,14 +8,14 @@ from sqlalchemy import (
     Enum
 )
 from sqlalchemy.orm import relationship
-from src.core.database.db import Base
+from src.core.database.db import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.sql import func
 from src.features.beehive.domain.enums.beehive_enums import ActivityLevel, BeePopulation, HiveStatus, HealthStatus, HasProductionChamber
 
 
-class BeehiveModel(Base):
+class BeehiveModel(db.Model):
     __tablename__ = "beehives"
 
     beehive_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)

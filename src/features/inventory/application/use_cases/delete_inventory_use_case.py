@@ -2,6 +2,7 @@ from src.features.inventory.application.interfaces.repositories.inventory_reposi
     InventoryRepository,
 )
 from uuid import UUID
+from src.features.inventory.domain.exceptions.inventory_exceptions import InventoryNotFoundException
 
 
 class DeleteInventoryUseCase:
@@ -9,7 +10,7 @@ class DeleteInventoryUseCase:
         self.repository = repository
 
     def execute(self, inventory_id: UUID) -> None:
-        inventory = self.repository.get_by_id(inventory_id)
+        inventory = self.repository.get_inventory_by_id(inventory_id)
         if not inventory:
-            raise Exception("Inventory not found")
-        return self.repository.delete(inventory_id)
+            raise InventoryNotFoundException(f"Inventory with id {inventory_id} not found")
+        self.repository.delete_inventory(inventory_id)

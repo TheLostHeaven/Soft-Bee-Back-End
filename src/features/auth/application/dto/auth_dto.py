@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, validator, field_validator # Added field_validator
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from uuid import UUID
@@ -27,15 +27,17 @@ class RegisterRequestDTO(BaseModel):
     confirm_password: str = Field(..., min_length=8)
     phone: Optional[str] = None
     
-    @validator('username')
+    @field_validator('username')
+    @classmethod
     def validate_username(cls, v):
         if not v.replace('_', '').isalnum():
             raise ValueError('Username can only contain letters, numbers and underscores')
         return v
     
-    @validator('confirm_password')
-    def passwords_match(cls, v, values):
-        if 'password' in values and v != values['password']:
+    @field_validator('confirm_password')
+    @classmethod
+    def passwords_match(cls, v, info): # Changed 'values' to 'info'
+        if 'password' in info.data and v != info.data['password']: # Access values via info.data
             raise ValueError('Passwords do not match')
         return v
 
