@@ -5,14 +5,14 @@ from src.features.beehive.domain.enums.beehive_enums import ActivityLevel, BeePo
 
 class CreateBeehiveRequestSchema(BaseModel):
     apiary_id: UUID = Field(..., example="2142ebd4-1311-4ea1-95d4-710dd8e69ae0")
-    beehive_number: int = Field(..., example=101)
-    activity_level: ActivityLevel = Field(..., example=ActivityLevel.Alta)
-    bee_population: BeePopulation = Field(..., example=BeePopulation.Media)
-    food_frames: int = Field(..., example=5)
-    brood_frames: int = Field(..., example=3)
-    hive_status: HiveStatus = Field(..., example=HiveStatus.CamaraDeCriaYProduccion)
-    health_status: HealthStatus = Field(..., example=HealthStatus.Ninguno)
-    has_production_chamber: HasProductionChamber = Field(..., example=HasProductionChamber.Si)
+    beehive_number: Optional[int] = Field(None, example=101)
+    activity_level: Optional[ActivityLevel] = Field(None, example=ActivityLevel.Alta)
+    bee_population: Optional[BeePopulation] = Field(None, example=BeePopulation.Media)
+    food_frames: Optional[int] = Field(None, example=5)
+    brood_frames: Optional[int] = Field(None, example=3)
+    hive_status: Optional[HiveStatus] = Field(None, example=HiveStatus.CamaraDeCriaYProduccion)
+    health_status: Optional[HealthStatus] = Field(None, example=HealthStatus.Ninguno)
+    has_production_chamber: Optional[HasProductionChamber] = Field(None, example=HasProductionChamber.Si)
     observations: Optional[str] = Field(None, example="La colmena se ve saludable.")
 
 class UpdateBeehiveRequestSchema(BaseModel):
@@ -28,14 +28,14 @@ class UpdateBeehiveRequestSchema(BaseModel):
 class BeehiveResponseSchema(BaseModel):
     id: UUID = Field(..., alias="beehive_id")
     apiary_id: UUID
-    beehive_number: int
-    activity_level: str
-    bee_population: str
-    food_frames: int
-    brood_frames: int
-    hive_status: str
-    health_status: str
-    has_production_chamber: str
+    beehive_number: Optional[int]
+    activity_level: Optional[str]
+    bee_population: Optional[str]
+    food_frames: Optional[int]
+    brood_frames: Optional[int]
+    hive_status: Optional[str]
+    health_status: Optional[str]
+    has_production_chamber: Optional[str]
     observations: Optional[str]
     created_at: str
     updated_at: str
