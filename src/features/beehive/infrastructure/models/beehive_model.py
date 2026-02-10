@@ -1,35 +1,29 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Text,
-    TIMESTAMP,
-    ForeignKey,
-    Enum
-)
-from sqlalchemy.orm import relationship
-from src.core.database.db import Base
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-from src.features.beehive.domain.enums.beehive_enums import ActivityLevel, BeePopulation, HiveStatus, HealthStatus, HasProductionChamber
+from src.core.database.db import db
 
+class BeehiveModel(db.Model):
+    __tablename__ = 'beehives'
 
-class BeehiveModel(Base):
-    __tablename__ = "beehives"
-
-    beehive_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    apiary_id = Column(UUID(as_uuid=True), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
+    beehive_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    apiary_id = Column(UUID(as_uuid=True), ForeignKey('apiaries.id', ondelete='CASCADE'), nullable=False)
     beehive_number = Column(Integer, nullable=False)
-    activity_level = Column(Enum(ActivityLevel), nullable=True)
-    bee_population = Column(Enum(BeePopulation), nullable=True)
-    food_frames = Column(Integer, nullable=True)
-    brood_frames = Column(Integer, nullable=True)
-    hive_status = Column(Enum(HiveStatus), nullable=True)
-    health_status = Column(Enum(HealthStatus), nullable=True)
-    has_production_chamber = Column(Enum(HasProductionChamber), nullable=True)
+    activity_level = Column(Text)
+    bee_population = Column(Text)
+    food_frames = Column(Integer)
+    brood_frames = Column(Integer)
+    hive_status = Column(Text)
+    health_status = Column(Text)
+    has_production_chamber = Column(Text)
     observations = Column(Text)
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    apiary = relationship("ApiaryModel", back_populates="hives")
+    __table_args__ = (
+        UniqueConstraint('apiary_id', 'beehive_number', name='_apiary_beehive_number_uc'),
+    )
+
+    def __repr__(self):
+        return f'<BeehiveModel {self.beehive_id}>'

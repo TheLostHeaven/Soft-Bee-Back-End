@@ -1,7 +1,6 @@
 from typing import Optional, Union
 from pydantic import BaseModel, Field
 from uuid import UUID
-from src.features.beehive.domain.enums.beehive_enums import ActivityLevel, BeePopulation, HiveStatus, HealthStatus, HasProductionChamber
 
 
 class CreateBeehiveDTO(BaseModel):
