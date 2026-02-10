@@ -6,23 +6,23 @@ from src.features.beehive.domain.enums.beehive_enums import ActivityLevel, BeePo
 class CreateBeehiveRequestSchema(BaseModel):
     apiary_id: UUID = Field(..., example="2142ebd4-1311-4ea1-95d4-710dd8e69ae0")
     beehive_number: Optional[int] = Field(None, example=101)
-    activity_level: Optional[ActivityLevel] = Field(None, example=ActivityLevel.Alta)
-    bee_population: Optional[BeePopulation] = Field(None, example=BeePopulation.Media)
+    activity_level: Optional[str] = Field(None, example="Alta")
+    bee_population: Optional[str] = Field(None, example="Media")
     food_frames: Optional[int] = Field(None, example=5)
     brood_frames: Optional[int] = Field(None, example=3)
-    hive_status: Optional[HiveStatus] = Field(None, example=HiveStatus.CamaraDeCriaYProduccion)
-    health_status: Optional[HealthStatus] = Field(None, example=HealthStatus.Ninguno)
-    has_production_chamber: Optional[HasProductionChamber] = Field(None, example=HasProductionChamber.Si)
+    hive_status: Optional[str] = Field(None, example="Cámara de cría y producción")
+    health_status: Optional[str] = Field(None, example="Ninguno")
+    has_production_chamber: Optional[str] = Field(None, example="Si")
     observations: Optional[str] = Field(None, example="La colmena se ve saludable.")
 
 class UpdateBeehiveRequestSchema(BaseModel):
-    activity_level: Optional[ActivityLevel] = Field(None, example=ActivityLevel.Media)
-    bee_population: Optional[BeePopulation] = Field(None, example=BeePopulation.Alta)
+    activity_level: Optional[str] = Field(None, example="Media")
+    bee_population: Optional[str] = Field(None, example="Alta")
     food_frames: Optional[int] = Field(None, example=6)
     brood_frames: Optional[int] = Field(None, example=4)
-    hive_status: Optional[HiveStatus] = Field(None, example=HiveStatus.CamaraDeCriaYDobleAlzaDeProduccion)
-    health_status: Optional[HealthStatus] = Field(None, example=HealthStatus.PresenciaBarroa)
-    has_production_chamber: Optional[HasProductionChamber] = Field(None, example=HasProductionChamber.No)
+    hive_status: Optional[str] = Field(None, example="Cámara de cría y doble alza de producción")
+    health_status: Optional[str] = Field(None, example="Presencia barroa")
+    has_production_chamber: Optional[str] = Field(None, example="No")
     observations: Optional[str] = Field(None, example="Se observó presencia de varroa.")
 
 class BeehiveResponseSchema(BaseModel):
