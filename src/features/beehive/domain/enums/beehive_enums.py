@@ -1,27 +1,33 @@
 from enum import Enum
 
-class ActivityLevel(Enum):
-    Alta = "Alta"
-    Media = "Media"
-    Baja = "Baja"
+ACTIVITY_LEVEL_VALUES = [
+    "Alta",
+    "Media",
+    "Baja"
+]
 
-class BeePopulation(Enum):
-    Alta = "Alta"
-    Media = "Media"
-    Baja = "Baja"
+BEE_POPULATION_VALUES = [
+    "Alta",
+    "Media",
+    "Baja"
+]
 
-class HiveStatus(Enum):
-    CamaraDeCriaYProduccion = "Cámara de cría y producción"
-    CamaraDeCriaYDobleAlzaDeProduccion = "Cámara de cría y doble alza de producción"
-    CamaraDeCria = "Cámara de cría"
-    CamaraDeProduccion = "Cámara de producción"
+HIVE_STATUS_VALUES = [
+    "Cámara de cría y producción",
+    "Cámara de cría y doble alza de producción",
+    "Cámara de cría",
+    "Cámara de producción"
+]
 
-class HealthStatus(Enum):
-    Ninguno = "Ninguno"
-    PresenciaBarroa = "Presencia barroa"
-    PresenciaDePlagas = "Presencia de plagas"
-    Enfermedad = "Enfermedad"
+HEALTH_STATUS_VALUES = [
+    "Ninguno",
+    "Presencia barroa",
+    "Presencia de polilla",
+    "Presencia de curruncho",
+    "Mortalidad- malformación en nodrizas",
+]
 
-class HasProductionChamber(Enum):
-    Si = "Si"
-    No = "No"
+HAS_PRODUCTION_CHAMBER_VALUES = [
+    "Si",
+    "No"
+]

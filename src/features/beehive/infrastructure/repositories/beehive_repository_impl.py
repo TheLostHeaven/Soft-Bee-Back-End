@@ -8,6 +8,7 @@ from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
 from src.features.beehive.domain.exceptions.beehive_exceptions import BeehiveNotFoundException
 from sqlalchemy.exc import IntegrityError
 from uuid import UUID
+from enum import Enum
 
 
 class BeehiveRepositoryImpl(IBeehiveRepository):
@@ -44,7 +45,10 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
 
         update_data = beehive_dto.model_dump(exclude_unset=True)
         for key, value in update_data.items():
-            setattr(beehive, key, value)
+            if isinstance(value, Enum):
+                setattr(beehive, key, value.value)
+            else:
+                setattr(beehive, key, value)
         
         self.db_session.commit()
         self.db_session.refresh(beehive)
