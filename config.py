@@ -66,12 +66,6 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     DATABASE_URL = os.getenv("DATABASE_URL")
-    if not DATABASE_URL:
-        raise ValueError("DATABASE_URL es requerida en producción")
-    if not os.getenv("JWT_KEY"):
-        raise ValueError("JWT_KEY es requerida en producción")
-    if not os.getenv("SECRET_KEY"):
-        raise ValueError("SECRET_KEY es requerida en producción")
 
 class TestingConfig(Config):
     """Configuración para pruebas"""
@@ -91,4 +85,15 @@ config = {
 def get_config():
     """Obtiene la configuración basada en la variable de entorno FLASK_ENV"""
     env = os.getenv('FLASK_ENV', 'local')
-    return config.get(env, config['default'])
+    config_class = config.get(env, config['default'])
+    
+    # Realizar validaciones específicas de producción si el entorno es 'production'
+    if env == 'production':
+        if not config_class.DATABASE_URL:
+            raise ValueError("DATABASE_URL es requerida en producción")
+        if not os.getenv("JWT_KEY"):
+            raise ValueError("JWT_KEY es requerida en producción")
+        if not os.getenv("SECRET_KEY"):
+            raise ValueError("SECRET_KEY es requerida en producción")
+            
+    return config_class

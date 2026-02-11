@@ -10,11 +10,11 @@ from sqlalchemy import (
 )
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from src.core.database.db import Base
+from src.core.database.db import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
-class InventoryModel(Base):
+class InventoryModel(db.Model):
     __tablename__ = "inventory"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

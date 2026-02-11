@@ -3,13 +3,9 @@ from flask import g, current_app
 import psycopg2
 from urllib.parse import quote_plus
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session, Session
-from flask_migrate import Migrate
+from sqlalchemy.orm import sessionmaker, scoped_session, Session
 
-# Instancia global de SQLAlchemy para migraciones
 db = SQLAlchemy()
-migrate = Migrate()
-Base = declarative_base()
 
 def get_db() -> Session:
     """Retorna la sesión de SQLAlchemy gestionada por Flask-SQLAlchemy"""
@@ -18,7 +14,7 @@ def get_db() -> Session:
 def init_app(app):
     """Inicializa la base de datos con la aplicación Flask"""
     
-    # Configurar SQLAlchemy para migraciones
+    # Configurar SQLAlchemy
     database_url = app.config.get('DATABASE_URL')
     
     if not database_url:
@@ -37,9 +33,8 @@ def init_app(app):
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Inicializar SQLAlchemy y Flask-Migrate
+    # Inicializar SQLAlchemy
     db.init_app(app)
-    migrate.init_app(app, db)
     
     @app.teardown_appcontext
     def teardown_db(exception=None):
@@ -90,6 +85,7 @@ def init_app(app):
                 # Importar modelos para que SQLAlchemy los detecte
                 from src.features.auth.infrastructure.models.user_model import UserModel
                 from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
+                from src.features.beehive.infrastructure.models.beehive_model import BeehiveModel
                 
                 db.create_all()
                 print("✅ Tablas de base de datos inicializadas correctamente")

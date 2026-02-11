@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Uniq
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from src.core.database.db import db
+from sqlalchemy.orm import relationship
 
 class BeehiveModel(db.Model):
     __tablename__ = 'beehives'
@@ -20,6 +21,8 @@ class BeehiveModel(db.Model):
     observations = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    apiary = relationship("ApiaryModel", back_populates="hives")
 
     __table_args__ = (
         UniqueConstraint('apiary_id', 'beehive_number', name='_apiary_beehive_number_uc'),

@@ -2,9 +2,9 @@ from datetime import datetime
 from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
-from src.core.database.db import Base
+from src.core.database.db import db
 
-class UserModel(Base):
+class UserModel(db.Model):
     """Modelo SQLAlchemy para usuarios"""
     __tablename__ = "users"
     
