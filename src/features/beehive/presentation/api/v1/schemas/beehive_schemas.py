@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from uuid import UUID
-from src.features.beehive.domain.enums.beehive_enums import ActivityLevel, BeePopulation, HiveStatus, HealthStatus, HasProductionChamber
 
 class CreateBeehiveRequestSchema(BaseModel):
     apiary_id: UUID = Field(..., example="2142ebd4-1311-4ea1-95d4-710dd8e69ae0")
