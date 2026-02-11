@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from src.features.inventory.application.interfaces.repositories.inventory_repository import (
     InventoryRepository,
@@ -12,6 +12,59 @@ from uuid import UUID
 class InventoryRepositoryImpl(InventoryRepository):
     def __init__(self, session: Session):
         self.session = session
+
+    def get_low_stock(self, apiary_id: UUID) -> List[Inventory]:
+        models = (
+            self.session.query(InventoryModel)
+            .filter(
+                InventoryModel.apiary_id == apiary_id,
+                InventoryModel.quantity <= InventoryModel.minimum_stock,
+                InventoryModel.quantity > 0, # Consider only items that are not out of stock
+            )
+            .all()
+        )
+        return [InventoryMapper.to_entity(model) for model in models]
+
+    def get_summary(self, apiary_id: UUID) -> Dict[str, Any]:
+        inventory_items = (
+            self.session.query(InventoryModel)
+            .filter(InventoryModel.apiary_id == apiary_id)
+            .all()
+        )
+
+        total_items = len(inventory_items)
+        total_quantity = sum(item.quantity for item in inventory_items)
+        in_stock_items = sum(1 for item in inventory_items if item.quantity > 0)
+        out_of_stock_items = sum(1 for item in inventory_items if item.quantity <= 0)
+        low_stock_items = sum(
+            1 for item in inventory_items if 0 < item.quantity <= item.minimum_stock
+        )
+        updated_at = (
+            max(item.updated_at for item in inventory_items)
+            if inventory_items
+            else None
+        )
+
+        return {
+            "total_items": total_items,
+            "total_quantity": total_quantity,
+            "in_stock_items": in_stock_items,
+            "out_of_stock_items": out_of_stock_items,
+            "low_stock_items": low_stock_items,
+            "updated_at": updated_at.isoformat() if updated_at else None,
+        }
+
+
+    def search(self, apiary_id: UUID, query: str) -> List[Inventory]:
+        models = (
+            self.session.query(InventoryModel)
+            .filter(
+                InventoryModel.apiary_id == apiary_id,
+                InventoryModel.name.ilike(f"%{query}%"),
+            )
+            .all()
+        )
+        return [InventoryMapper.to_entity(model) for model in models]
 
     def get_all(self, apiary_id: UUID) -> List[Inventory]:
         models = (
