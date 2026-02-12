@@ -28,11 +28,6 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     config_class = get_config()
     app.config.from_object(config_class)
 
-    
-    # Load environment variables from .env file
-    from dotenv import load_dotenv
-    load_dotenv()
-
     # Dynamic CORS configuration
     origins = os.environ.get('CORS_ORIGINS')
     if origins:
