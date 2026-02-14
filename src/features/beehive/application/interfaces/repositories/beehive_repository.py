@@ -10,7 +10,7 @@ class IBeehiveRepository(ABC):
         pass
 
     @abstractmethod
-    def get_beehive_by_id(self, beehive_id: UUID) -> Optional[Beehive]:
+    def get_beehive_by_id(self, id: UUID) -> Optional[Beehive]:
         pass
 
     @abstractmethod
@@ -18,9 +18,9 @@ class IBeehiveRepository(ABC):
         pass
 
     @abstractmethod
-    def update_beehive(self, beehive_id: UUID, beehive_dto: UpdateBeehiveDTO) -> Beehive:
+    def update_beehive(self, id: UUID, beehive_dto: UpdateBeehiveDTO) -> Beehive:
         pass
 
     @abstractmethod
-    def delete_beehive(self, beehive_id: UUID) -> bool:
+    def delete_beehive(self, id: UUID) -> bool:
         pass
