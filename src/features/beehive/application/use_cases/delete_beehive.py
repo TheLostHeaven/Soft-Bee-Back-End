@@ -6,7 +6,7 @@ class DeleteBeehiveUseCase:
     def __init__(self, repository: IBeehiveRepository):
         self.repository = repository
 
-    def execute(self, beehive_id: UUID) -> bool:
-        if not self.repository.delete_beehive(beehive_id):
-            raise BeehiveNotFoundException(beehive_id)
+    def execute(self, id: UUID) -> bool:
+        if not self.repository.delete_beehive(id):
+            raise BeehiveNotFoundException(id)
         return True
