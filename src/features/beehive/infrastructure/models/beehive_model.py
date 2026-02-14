@@ -8,13 +8,14 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from src.core.database.db import Base
 from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from sqlalchemy.sql import func
 
-class BeehiveModel(db.Model):
+class BeehiveModel(Base):
     __tablename__ = 'beehives'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    apiary_id = Column(UUID(as_uuid=True), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4, index=True)
+    apiary_id = Column(UUID(), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
     activity_level = Column(Text, nullable=True)
     bee_population = Column(Text, nullable=True)
     food_frames = Column(Integer)
@@ -23,12 +24,10 @@ class BeehiveModel(db.Model):
     health_status = Column(Text, nullable=True)
     has_production_chamber = Column(Text, nullable=True)
     observations = Column(Text)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
-    __table_args__ = (
-        UniqueConstraint('apiary_id', 'beehive_number', name='_apiary_beehive_number_uc'),
-    )
+    apiary = relationship("ApiaryModel", back_populates="hives")
 
     def __repr__(self):
-        return f'<BeehiveModel {self.beehive_id}>'
+        return f'<BeehiveModel {self.id}>'
