@@ -4,16 +4,15 @@ from uuid import UUID
 
 
 class CreateBeehiveDTO(BaseModel):
-    apiary_id: UUID = Field(..., example="2142ebd4-1311-4ea1-95d4-4242ebd4-1311-4ea1-95d4-710dd8e69ae0")
-    beehive_number: int = Field(..., example=101)
-    activity_level: Optional[str] = Field(default=None)
-    bee_population: Optional[str] = Field(default=None)
-    food_frames: Optional[int] = Field(default=None)
-    brood_frames: Optional[int] = Field(default=None)
-    hive_status: Optional[str] = Field(default=None)
-    health_status: Optional[str] = Field(default=None)
-    has_production_chamber: Optional[str] = Field(default=None)
-    observations: Optional[str] = Field(default=None)
+    apiary_id: UUID
+    activity_level: Optional[str] = Field(None, example="Bajo")
+    bee_population: Optional[str] = Field(None, example="Media")
+    food_frames: Optional[int] = Field(None, example=5)
+    brood_frames: Optional[int] = Field(None, example=3)
+    hive_status: Optional[str] = Field(None, example="Activa")
+    health_status: Optional[str] = Field(None, example="Saludable")
+    has_production_chamber: Optional[str] = Field(None, example="No")
+    observations: Optional[str] = Field(None, example="Sin observaciones.")
 
 
 class UpdateBeehiveDTO(BaseModel):
@@ -21,16 +20,15 @@ class UpdateBeehiveDTO(BaseModel):
     bee_population: Optional[str] = Field(None, example="Alta")
     food_frames: Optional[int] = Field(None, example=6)
     brood_frames: Optional[int] = Field(None, example=4)
-    hive_status: Optional[str] = Field(None, example="Cámara de cría y doble alza de producción")
-    health_status: Optional[str] = Field(None, example="Presencia barroa")
+    hive_status: Optional[str] = Field(None, example="Camara de cria y produccion")
+    health_status: Optional[str] = Field(None, example="Presencia de varroa")
     has_production_chamber: Optional[str] = Field(None, example="No")
     observations: Optional[str] = Field(None, example="Se observó presencia de varroa.")
 
 
 class BeehiveDTO(BaseModel):
-    beehive_id: UUID
+    id: UUID
     apiary_id: UUID
-    beehive_number: int
     activity_level: Optional[str]
     bee_population: Optional[str]
     food_frames: Optional[int]

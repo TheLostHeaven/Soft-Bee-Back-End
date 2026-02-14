@@ -30,18 +30,18 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
         
         return self._to_entity(new_beehive)
 
-    def get_beehive_by_id(self, beehive_id: UUID) -> Optional[Beehive]:
-        beehive = self.db_session.query(BeehiveModel).filter(BeehiveModel.beehive_id == beehive_id).first()
+    def get_beehive_by_id(self, id: UUID) -> Optional[Beehive]:
+        beehive = self.db_session.query(BeehiveModel).filter(BeehiveModel.id == id).first()
         return self._to_entity(beehive) if beehive else None
 
     def get_all_beehives_by_apiary_id(self, apiary_id: UUID) -> List[Beehive]:
         beehives = self.db_session.query(BeehiveModel).filter(BeehiveModel.apiary_id == apiary_id).all()
         return [self._to_entity(beehive) for beehive in beehives]
 
-    def update_beehive(self, beehive_id: UUID, beehive_dto: UpdateBeehiveDTO) -> Beehive:
-        beehive = self.db_session.query(BeehiveModel).filter(BeehiveModel.beehive_id == beehive_id).first()
+    def update_beehive(self, id: UUID, beehive_dto: UpdateBeehiveDTO) -> Beehive:
+        beehive = self.db_session.query(BeehiveModel).filter(BeehiveModel.id == id).first()
         if not beehive:
-            raise BeehiveNotFoundException(beehive_id)
+            raise BeehiveNotFoundException(id)
 
         update_data = beehive_dto.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -55,10 +55,10 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
         
         return self._to_entity(beehive)
 
-    def delete_beehive(self, beehive_id: UUID) -> bool:
-        beehive = self.db_session.query(BeehiveModel).filter(BeehiveModel.beehive_id == beehive_id).first()
+    def delete_beehive(self, id: UUID) -> bool:
+        beehive = self.db_session.query(BeehiveModel).filter(BeehiveModel.id == id).first()
         if not beehive:
-            raise BeehiveNotFoundException(beehive_id)
+            raise BeehiveNotFoundException(id)
         
         apiary_id = beehive.apiary_id
         self.db_session.delete(beehive)
@@ -75,9 +75,8 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
         if not model:
             return None
         return Beehive(
-            beehive_id=model.beehive_id,
+            id=model.id,
             apiary_id=model.apiary_id,
-            beehive_number=model.beehive_number,
             activity_level=model.activity_level,
             bee_population=model.bee_population,
             food_frames=model.food_frames,

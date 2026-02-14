@@ -1,22 +1,27 @@
-import uuid
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    Text,
+    TIMESTAMP,
+    ForeignKey,
+)
+from sqlalchemy.orm import relationship
+from src.core.database.db import Base
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-from src.core.database.db import db
 
 class BeehiveModel(db.Model):
     __tablename__ = 'beehives'
 
-    beehive_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    apiary_id = Column(UUID(as_uuid=True), ForeignKey('apiaries.id', ondelete='CASCADE'), nullable=False)
-    beehive_number = Column(Integer, nullable=False)
-    activity_level = Column(Text)
-    bee_population = Column(Text)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    apiary_id = Column(UUID(as_uuid=True), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
+    activity_level = Column(Text, nullable=True)
+    bee_population = Column(Text, nullable=True)
     food_frames = Column(Integer)
     brood_frames = Column(Integer)
-    hive_status = Column(Text)
-    health_status = Column(Text)
-    has_production_chamber = Column(Text)
+    hive_status = Column(Text, nullable=True)
+    health_status = Column(Text, nullable=True)
+    has_production_chamber = Column(Text, nullable=True)
     observations = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
