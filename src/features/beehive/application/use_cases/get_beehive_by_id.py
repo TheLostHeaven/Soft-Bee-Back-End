@@ -10,8 +10,8 @@ class GetBeehiveByIdUseCase:
     def __init__(self, repository: IBeehiveRepository):
         self.repository = repository
 
-    def execute(self, beehive_id: UUID) -> Optional[BeehiveDTO]:
-        beehive = self.repository.get_beehive_by_id(beehive_id)
+    def execute(self, id: UUID) -> Optional[BeehiveDTO]:
+        beehive = self.repository.get_beehive_by_id(id)
         if not beehive:
-            raise BeehiveNotFoundException(beehive_id)
+            raise BeehiveNotFoundException(id)
         return BeehiveMapper.to_dto(beehive)
