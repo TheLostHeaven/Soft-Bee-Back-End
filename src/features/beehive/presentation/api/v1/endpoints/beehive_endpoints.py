@@ -25,18 +25,18 @@ def create_beehive_endpoint():
         create_beehive_use_case: CreateBeehiveUseCase = current_app.container.create_beehive_use_case()
         
         beehive_dto = create_beehive_use_case.execute(create_request)
-        return jsonify(BeehiveResponseSchema.from_orm(beehive_dto).dict()), HTTPStatus.CREATED
+        return jsonify(BeehiveResponseSchema.model_validate(beehive_dto).model_dump()), HTTPStatus.CREATED
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
-@beehive_bp.route("/<uuid:beehive_id>", methods=['GET'])
-def get_beehive_by_id_endpoint(beehive_id: UUID):
+@beehive_bp.route("/<uuid:id>", methods=['GET'])
+def get_beehive_by_id_endpoint(id: UUID):
     try:
         get_beehive_by_id_use_case: GetBeehiveByIdUseCase = current_app.container.get_beehive_by_id_use_case()
-        beehive_dto = get_beehive_by_id_use_case.execute(beehive_id)
-        return jsonify(BeehiveResponseSchema.from_orm(beehive_dto).dict()), HTTPStatus.OK
+        beehive_dto = get_beehive_by_id_use_case.execute(id)
+        return jsonify(BeehiveResponseSchema.model_validate(beehive_dto).model_dump()), HTTPStatus.OK
     except BeehiveNotFoundException as e:
         return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND
     except Exception as e:
@@ -47,12 +47,12 @@ def get_all_beehives_by_apiary_id_endpoint(apiary_id: UUID):
     try:
         get_all_beehives_by_apiary_id_use_case: GetAllBeehivesByApiaryIdUseCase = current_app.container.get_all_beehives_by_apiary_id_use_case()
         beehives_dto = get_all_beehives_by_apiary_id_use_case.execute(apiary_id)
-        return jsonify([BeehiveResponseSchema.from_orm(beehive).dict() for beehive in beehives_dto]), HTTPStatus.OK
+        return jsonify([BeehiveResponseSchema.model_validate(beehive).model_dump() for beehive in beehives_dto]), HTTPStatus.OK
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
-@beehive_bp.route("/<uuid:beehive_id>", methods=['PUT'])
-def update_beehive_endpoint(beehive_id: UUID):
+@beehive_bp.route("/<uuid:id>", methods=['PUT'])
+def update_beehive_endpoint(id: UUID):
     try:
         data = request.json
         if not data:
@@ -61,8 +61,8 @@ def update_beehive_endpoint(beehive_id: UUID):
         update_request = UpdateBeehiveRequestSchema(**data)
         update_beehive_use_case: UpdateBeehiveUseCase = current_app.container.update_beehive_use_case()
         
-        beehive_dto = update_beehive_use_case.execute(beehive_id, update_request)
-        return jsonify(BeehiveResponseSchema.from_orm(beehive_dto).dict()), HTTPStatus.OK
+        beehive_dto = update_beehive_use_case.execute(id, update_request)
+        return jsonify(BeehiveResponseSchema.model_validate(beehive_dto).model_dump()), HTTPStatus.OK
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except BeehiveNotFoundException as e:
@@ -70,11 +70,11 @@ def update_beehive_endpoint(beehive_id: UUID):
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
-@beehive_bp.route("/<uuid:beehive_id>", methods=['DELETE'])
-def delete_beehive_endpoint(beehive_id: UUID):
+@beehive_bp.route("/<uuid:id>", methods=['DELETE'])
+def delete_beehive_endpoint(id: UUID):
     try:
         delete_beehive_use_case: DeleteBeehiveUseCase = current_app.container.delete_beehive_use_case()
-        delete_beehive_use_case.execute(beehive_id)
+        delete_beehive_use_case.execute(id)
         return jsonify({}), HTTPStatus.NO_CONTENT
     except BeehiveNotFoundException as e:
         return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND

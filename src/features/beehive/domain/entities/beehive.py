@@ -6,23 +6,21 @@ from uuid import UUID
 class Beehive:
     def __init__(
         self,
-        beehive_id: UUID,
+        id: UUID,
         apiary_id: UUID,
-        beehive_number: int,
-        activity_level: str,
-        bee_population: str,
-        food_frames: int,
-        brood_frames: int,
-        hive_status: str,
-        health_status: str,
-        has_production_chamber: str,
+        activity_level: Optional[str],
+        bee_population: Optional[str],
+        food_frames: Optional[int],
+        brood_frames: Optional[int],
+        hive_status: Optional[str],
+        health_status: Optional[str],
+        has_production_chamber: Optional[str],
         observations: Optional[str],
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
     ):
-        self.beehive_id = beehive_id
+        self.id = id
         self.apiary_id = apiary_id
-        self.beehive_number = beehive_number
         self.activity_level = activity_level
         self.bee_population = bee_population
         self.food_frames = food_frames
