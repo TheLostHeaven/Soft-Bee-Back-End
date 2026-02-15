@@ -10,6 +10,7 @@ from src.core.database.db import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.sql import func
+from src.core.database.db import Base
 
 class BeehiveModel(Base):
     __tablename__ = 'beehives'
@@ -26,7 +27,6 @@ class BeehiveModel(Base):
     observations = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
-
     apiary = relationship("ApiaryModel", back_populates="hives")
 
     def __repr__(self):
