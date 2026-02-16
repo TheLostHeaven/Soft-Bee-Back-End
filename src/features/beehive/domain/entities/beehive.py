@@ -8,6 +8,7 @@ class Beehive:
         self,
         id: UUID,
         apiary_id: UUID,
+        hive_number: int,
         activity_level: Optional[str],
         bee_population: Optional[str],
         food_frames: Optional[int],
@@ -21,6 +22,7 @@ class Beehive:
     ):
         self.id = id
         self.apiary_id = apiary_id
+        self.hive_number = hive_number
         self.activity_level = activity_level
         self.bee_population = bee_population
         self.food_frames = food_frames

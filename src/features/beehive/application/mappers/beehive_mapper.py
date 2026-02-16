@@ -8,6 +8,7 @@ class BeehiveMapper:
         return BeehiveDTO(
             id=beehive.id,
             apiary_id=beehive.apiary_id,
+            hive_number=beehive.hive_number,
             activity_level=beehive.activity_level,
             bee_population=beehive.bee_population,
             food_frames=beehive.food_frames,

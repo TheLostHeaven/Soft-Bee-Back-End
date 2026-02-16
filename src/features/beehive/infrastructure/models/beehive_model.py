@@ -16,6 +16,7 @@ class BeehiveModel(Base):
 
     id = Column(UUID(), primary_key=True, default=uuid.uuid4, index=True)
     apiary_id = Column(UUID(), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
+    hive_number = Column(Integer, nullable=False, autoincrement=True, unique=True)
     activity_level = Column(Text, nullable=True)
     bee_population = Column(Text, nullable=True)
     food_frames = Column(Integer)
