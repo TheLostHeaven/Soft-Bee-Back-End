@@ -18,8 +18,7 @@ beehive_bp = Blueprint('beehive_bp', __name__, url_prefix='/api/v1/beehives')
 def create_beehive_endpoint():
     try:
         data = request.json
-        if not data:
-            return jsonify({"message": "Request body cannot be empty"}), HTTPStatus.BAD_REQUEST
+        if not data: return jsonify({"message": "Request body cannot be empty"}), HTTPStatus.BAD_REQUEST
 
         create_request = CreateBeehiveRequestSchema(**data)
         create_beehive_use_case: CreateBeehiveUseCase = current_app.container.create_beehive_use_case()
