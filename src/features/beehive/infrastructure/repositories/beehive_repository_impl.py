@@ -16,7 +16,19 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
         self.db_session = db_session
 
     def create_beehive(self, beehive_dto: CreateBeehiveDTO) -> Beehive:
-        new_beehive = BeehiveModel(**beehive_dto.model_dump())
+        beehive_data = beehive_dto.model_dump()
+        new_beehive = BeehiveModel(
+            apiary_id=beehive_data['apiary_id'],
+            hive_number=beehive_data.get('hive_number'),
+            activity_level=beehive_data.get('activity_level'),
+            bee_population=beehive_data.get('bee_population'),
+            food_frames=beehive_data.get('food_frames'),
+            brood_frames=beehive_data.get('brood_frames'),
+            hive_status=beehive_data.get('hive_status'),
+            health_status=beehive_data.get('health_status'),
+            has_production_chamber=beehive_data.get('has_production_chamber'),
+            observations=beehive_data.get('observations')
+        )
         self.db_session.add(new_beehive)
         self.db_session.flush()  # Flush to get the ID
 
@@ -77,6 +89,7 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
         return Beehive(
             id=model.id,
             apiary_id=model.apiary_id,
+            hive_number=model.hive_number,
             activity_level=model.activity_level,
             bee_population=model.bee_population,
             food_frames=model.food_frames,

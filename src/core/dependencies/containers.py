@@ -44,6 +44,10 @@ class MainContainer(containers.DeclarativeContainer):
     inventory_container = providers.Container(
         InventoryContainer,
         db_session=db_session,
+        apiary_repository=providers.Factory(
+            ApiaryRepositoryImpl,
+            db_session=db_session
+        )
     )
 
     auth_user_repository = providers.Factory(

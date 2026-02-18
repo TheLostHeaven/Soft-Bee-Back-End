@@ -5,6 +5,7 @@ from uuid import UUID
 
 class CreateBeehiveDTO(BaseModel):
     apiary_id: UUID
+    hive_number: int = Field(..., example=101)
     activity_level: Optional[str] = Field(None, example="Bajo")
     bee_population: Optional[str] = Field(None, example="Media")
     food_frames: Optional[int] = Field(None, example=5)
@@ -29,6 +30,7 @@ class UpdateBeehiveDTO(BaseModel):
 class BeehiveDTO(BaseModel):
     id: UUID
     apiary_id: UUID
+    hive_number: int
     activity_level: Optional[str]
     bee_population: Optional[str]
     food_frames: Optional[int]
