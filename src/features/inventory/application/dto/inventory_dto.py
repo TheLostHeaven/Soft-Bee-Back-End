@@ -34,3 +34,7 @@ class UpdateInventoryDTO(BaseModel):
     unit: Optional[str] = None
     description: Optional[str] = None
     minimum_stock: Optional[int] = None
+
+
+class AdjustInventoryDTO(BaseModel):
+    adjustment_amount: int

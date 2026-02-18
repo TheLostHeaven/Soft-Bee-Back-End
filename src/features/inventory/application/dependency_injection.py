@@ -11,6 +11,12 @@ from src.features.inventory.application.use_cases.update_inventory_use_case impo
 from src.features.inventory.application.use_cases.delete_inventory_use_case import (
     DeleteInventoryUseCase,
 )
+from src.features.inventory.application.use_cases.get_inventory_summary_use_case import (
+    GetInventorySummaryUseCase,
+)
+from src.features.inventory.application.use_cases.adjust_inventory_use_case import (
+    AdjustInventoryUseCase,
+)
 from src.features.inventory.infrastructure.repositories.inventory_repository import (
     InventoryRepositoryImpl,
 )
@@ -18,6 +24,7 @@ from src.features.inventory.infrastructure.repositories.inventory_repository imp
 
 class InventoryContainer(containers.DeclarativeContainer):
     db_session = providers.Dependency()
+    apiary_repository = providers.Dependency()
 
     inventory_repository = providers.Factory(
         InventoryRepositoryImpl, session=db_session
@@ -34,4 +41,12 @@ class InventoryContainer(containers.DeclarativeContainer):
     )
     delete_inventory_use_case = providers.Factory(
         DeleteInventoryUseCase, repository=inventory_repository
+    )
+    get_inventory_summary_use_case = providers.Factory(
+        GetInventorySummaryUseCase,
+        apiary_repository=apiary_repository,
+        inventory_repository=inventory_repository,
+    )
+    adjust_inventory_use_case = providers.Factory(
+        AdjustInventoryUseCase, repository=inventory_repository
     )
