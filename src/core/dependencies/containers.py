@@ -33,6 +33,15 @@ from src.features.beehive.application.use_cases.update_beehive import UpdateBeeh
 from src.features.beehive.application.use_cases.delete_beehive import DeleteBeehiveUseCase
 from src.features.inventory.application.dependency_injection import InventoryContainer
 
+from src.features.questions.infrastructure.repositories.question_repository_impl import QuestionRepositoryImpl
+from src.features.questions.application.use_cases.create_question import CreateQuestionUseCase
+from src.features.questions.application.use_cases.get_question import GetQuestionUseCase
+from src.features.questions.application.use_cases.get_apiary_questions import GetApiaryQuestionsUseCase
+from src.features.questions.application.use_cases.update_question import UpdateQuestionUseCase
+from src.features.questions.application.use_cases.delete_question import DeleteQuestionUseCase
+from src.features.questions.application.use_cases.reorder_questions import ReorderQuestionsUseCase
+from src.features.questions.application.use_cases.load_default_questions import LoadDefaultQuestionsUseCase
+
 config_obj = get_config()
 
 class MainContainer(containers.DeclarativeContainer):
@@ -198,3 +207,44 @@ class MainContainer(containers.DeclarativeContainer):
         DeleteBeehiveUseCase,
         repository=beehive_repository
     )
+
+    question_repository = providers.Factory(
+        QuestionRepositoryImpl,
+        db_session=db_session
+    )
+
+    create_question_use_case = providers.Factory(
+        CreateQuestionUseCase,
+        question_repository=question_repository
+    )
+
+    get_question_use_case = providers.Factory(
+        GetQuestionUseCase,
+        question_repository=question_repository
+    )
+
+    get_apiary_questions_use_case = providers.Factory(
+        GetApiaryQuestionsUseCase,
+        question_repository=question_repository
+    )
+
+    update_question_use_case = providers.Factory(
+        UpdateQuestionUseCase,
+        question_repository=question_repository
+    )
+
+    delete_question_use_case = providers.Factory(
+        DeleteQuestionUseCase,
+        question_repository=question_repository
+    )
+
+    reorder_questions_use_case = providers.Factory(
+        ReorderQuestionsUseCase,
+        question_repository=question_repository
+    )
+
+    load_default_questions_use_case = providers.Factory(
+        LoadDefaultQuestionsUseCase,
+        question_repository=question_repository
+    )
+    

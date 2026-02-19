@@ -49,7 +49,8 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
                             "src.features.apiaries.presentation.api.v1.endpoints.apiary_endpoints",
                             "src.features.user.presentation.api.v1.endpoints.users",
                             "src.features.beehive.presentation.api.v1.endpoints.beehive_endpoints",
-                            "src.features.inventory.presentation.api.v1.endpoints.inventory_endpoints"])
+                            "src.features.inventory.presentation.api.v1.endpoints.inventory_endpoints",
+                            "src.features.questions.presentation.api.v1.endpoints.question_endpoints"])
     app.container = container
 
     # Inicializar base de datos y migraciones
@@ -57,7 +58,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
 
     # from src.routes.health import create_health_routes
     # from src.routes.auth import create_auth_routes
-    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory']
+    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'questions']
     registered_features = register_features(app, features_to_register)
 
     print("\n" + "="*50)
