@@ -1,12 +1,21 @@
 {
   "preguntas": [
     {
-      "id": "estado_general",
-      "categoria": "Estado de la Colmena",
-      "pregunta": "¿Cuál es el estado general de la colmena?",
+      "id": "presencia_reina",
+      "categoria": "Salud",
+      "pregunta": "¿Se observó a la reina?",
       "tipo": "opciones",
       "obligatoria": true,
-      "opciones": ["Excelente", "Bueno", "Regular", "Malo"]
+      "opciones": ["Sí", "No"],
+      "puntaje": 10
+    },
+    {
+      "id": "enfermedades",
+      "categoria": "Salud",
+      "pregunta": "¿Signos de enfermedades (Loque, Varroa, etc.)?",
+      "tipo": "texto",
+      "obligatoria": false,
+      "puntaje": 9.5
     },
     {
       "id": "poblacion",
@@ -14,15 +23,8 @@
       "pregunta": "Nivel de población",
       "tipo": "opciones",
       "obligatoria": true,
-      "opciones": ["Alta", "Media", "Baja"]
-    },
-    {
-      "id": "comportamiento",
-      "categoria": "Estado de la Colmena",
-      "pregunta": "Comportamiento de las abejas",
-      "tipo": "opciones",
-      "obligatoria": true,
-      "opciones": ["Dócil", "Nervioso", "Agresivo"]
+      "opciones": ["Alta", "Media", "Baja"],
+      "puntaje": 9
     },
     {
       "id": "cantidad_cria",
@@ -31,7 +33,35 @@
       "tipo": "numero",
       "obligatoria": true,
       "min": 0,
-      "max": 20
+      "max": 20,
+      "puntaje": 8.5
+    },
+    {
+      "id": "estado_general",
+      "categoria": "Estado de la Colmena",
+      "pregunta": "¿Cuál es el estado general de la colmena?",
+      "tipo": "opciones",
+      "obligatoria": true,
+      "opciones": ["Excelente", "Bueno", "Regular", "Malo"],
+      "puntaje": 8
+    },
+    {
+      "id": "necesita_alimentacion",
+      "categoria": "Alimentación",
+      "pregunta": "¿Necesita alimentación suplementaria?",
+      "tipo": "opciones",
+      "obligatoria": true,
+      "opciones": ["Sí", "No"],
+      "puntaje": 7.5
+    },
+    {
+      "id": "celdas_reales",
+      "categoria": "Salud",
+      "pregunta": "¿Presencia de celdas reales?",
+      "tipo": "opciones",
+      "obligatoria": true,
+      "opciones": ["Sí", "No"],
+      "puntaje": 7
     },
     {
       "id": "cantidad_miel",
@@ -40,38 +70,8 @@
       "tipo": "numero",
       "obligatoria": true,
       "min": 0,
-      "max": 20
-    },
-    {
-      "id": "presencia_reina",
-      "categoria": "Salud",
-      "pregunta": "¿Se observó a la reina?",
-      "tipo": "opciones",
-      "obligatoria": true,
-      "opciones": ["Sí", "No"]
-    },
-    {
-      "id": "celdas_reales",
-      "categoria": "Salud",
-      "pregunta": "¿Presencia de celdas reales?",
-      "tipo": "opciones",
-      "obligatoria": true,
-      "opciones": ["Sí", "No"]
-    },
-    {
-      "id": "enfermedades",
-      "categoria": "Salud",
-      "pregunta": "¿Signos de enfermedades (Loque, Varroa, etc.)?",
-      "tipo": "texto",
-      "obligatoria": false
-    },
-    {
-      "id": "necesita_alimentacion",
-      "categoria": "Alimentación",
-      "pregunta": "¿Necesita alimentación suplementaria?",
-      "tipo": "opciones",
-      "obligatoria": true,
-      "opciones": ["Sí", "No"]
+      "max": 20,
+      "puntaje": 6.5
     },
     {
       "id": "espacio_disponible",
@@ -79,7 +79,17 @@
       "pregunta": "¿Necesita más espacio (alzas)?",
       "tipo": "opciones",
       "obligatoria": true,
-      "opciones": ["Sí", "No"]
+      "opciones": ["Sí", "No"],
+      "puntaje": 6
+    },
+    {
+      "id": "comportamiento",
+      "categoria": "Estado de la Colmena",
+      "pregunta": "Comportamiento de las abejas",
+      "tipo": "opciones",
+      "obligatoria": true,
+      "opciones": ["Dócil", "Nervioso", "Agresivo"],
+      "puntaje": 5.5
     }
   ]
 }

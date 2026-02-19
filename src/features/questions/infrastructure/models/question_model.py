@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Boolean
+from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Boolean, Float
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 import uuid
 from src.core.database.db import Base
@@ -18,6 +18,7 @@ class QuestionModel(Base):
     display_order = Column(Integer, default=0, nullable=False)
     min_value = Column(Integer, nullable=True)
     max_value = Column(Integer, nullable=True)
+    score = Column(Float, nullable=True)
     options = Column(JSONB, nullable=True)
     depends_on = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
