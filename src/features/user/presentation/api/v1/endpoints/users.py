@@ -6,6 +6,7 @@ from uuid import UUID
 from src.features.user.application.use_cases.get_user import GetUserUseCase
 from src.features.user.application.use_cases.update_user import UpdateUserUseCase
 from src.features.user.application.use_cases.delete_user import DeleteUserUseCase
+from src.features.user.application.use_cases.get_user_full_data import GetUserFullDataUseCase
 from src.features.user.application.dto.user_dto import UpdateUserDTO
 from src.features.user.presentation.api.v1.schemas.user_schemas import UpdateUserSchema
 from src.core.dependencies.containers import MainContainer
@@ -24,6 +25,22 @@ def get_user(
             return jsonify(user.model_dump()), 200
         return jsonify({"error": "User not found"}), 404
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@user_bp.route('/<uuid:user_id>/all', methods=['GET'])
+@inject
+def get_user_full_data(
+    user_id: UUID,
+    get_user_full_data_use_case: GetUserFullDataUseCase = Provide[MainContainer.get_user_full_data_use_case]
+):
+    try:
+        data = get_user_full_data_use_case.execute(user_id)
+        if data:
+            return jsonify(data.model_dump()), 200
+        return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @user_bp.route('/<uuid:user_id>', methods=['PUT'])

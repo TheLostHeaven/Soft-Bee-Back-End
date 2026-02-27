@@ -19,6 +19,7 @@ from src.features.apiaries.application.use_cases.delete_apiary import DeleteApia
 from src.features.user.application.use_cases.get_user import GetUserUseCase
 from src.features.user.application.use_cases.update_user import UpdateUserUseCase
 from src.features.user.application.use_cases.delete_user import DeleteUserUseCase
+from src.features.user.application.use_cases.get_user_full_data import GetUserFullDataUseCase
 
 from src.features.auth.application.use_cases.forgot_password import ForgotPasswordUseCase
 from src.features.auth.application.use_cases.reset_password import ResetPasswordUseCase
@@ -197,4 +198,12 @@ class MainContainer(containers.DeclarativeContainer):
     delete_beehive_use_case = providers.Factory(
         DeleteBeehiveUseCase,
         repository=beehive_repository
+    )
+
+    get_user_full_data_use_case = providers.Factory(
+        GetUserFullDataUseCase,
+        get_user_use_case=get_user_use_case,
+        get_apiaries_use_case=get_apiaries_by_user_id_use_case,
+        get_beehives_use_case=get_all_beehives_by_apiary_id_use_case,
+        get_inventories_use_case=inventory_container.get_inventories_by_apiary_use_case
     )
