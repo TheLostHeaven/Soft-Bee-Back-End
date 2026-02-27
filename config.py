@@ -40,6 +40,15 @@ class Config:
         "password_argon2_hash_len": int(os.getenv("ARGON2_HASH_LEN", 32)),
         "password_argon2_salt_len": int(os.getenv("ARGON2_SALT_LEN", 16)),
     }
+
+    AI = {
+        "openai_api_key": os.getenv("OPENAI_API_KEY"),
+        "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY"),
+        "gemini_api_key": os.getenv("GEMINI_API_KEY"),
+        "deepseek_api_key": os.getenv("DEEPSEEK_API_KEY"),
+        "default_provider": os.getenv("DEFAULT_AI_PROVIDER", "mock")
+    }
+
     JWT_SECRET_KEY = AUTH["jwt_secret_key"]
     JWT_ALGORITHM = AUTH["jwt_algorithm"]  # <-- Esto ahora tiene valor
     JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_SESSION", 1440))  # 24 horas

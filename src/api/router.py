@@ -27,6 +27,7 @@ class FeatureRouter:
                 'user_bp', # Added user_bp
                 'beehive_bp',
                 'inventory_bp', # Added inventory_bp
+                'ai_agent_bp',
                 'bp',
             ]
             

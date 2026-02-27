@@ -50,3 +50,5 @@ gunicorn==21.2.0
 sentry-sdk[flask]==2.14.0
 Flask-Limiter==3.5.0
 defusedxml==0.7.1
+openai==2.24.0
+google-generativeai==0.8.4

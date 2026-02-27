@@ -34,6 +34,14 @@ from src.features.beehive.application.use_cases.update_beehive import UpdateBeeh
 from src.features.beehive.application.use_cases.delete_beehive import DeleteBeehiveUseCase
 from src.features.inventory.application.dependency_injection import InventoryContainer
 
+from src.features.ai_agent.infrastructure.services.ai_service_impl import MockAIServiceImpl
+from src.features.ai_agent.infrastructure.services.openai_service_impl import OpenAIServiceImpl
+from src.features.ai_agent.infrastructure.services.deepseek_service_impl import DeepSeekServiceImpl
+from src.features.ai_agent.infrastructure.services.gemini_service_impl import GeminiServiceImpl
+from src.features.ai_agent.infrastructure.services.ai_provider_registry import AIProviderRegistry
+from src.features.ai_agent.infrastructure.services.session_repository_impl import InMemoryAISessionRepository
+from src.features.ai_agent.application.use_cases.process_ai_prompt import ProcessAIPromptUseCase
+
 config_obj = get_config()
 
 class MainContainer(containers.DeclarativeContainer):
@@ -206,4 +214,42 @@ class MainContainer(containers.DeclarativeContainer):
         get_apiaries_use_case=get_apiaries_by_user_id_use_case,
         get_beehives_use_case=get_all_beehives_by_apiary_id_use_case,
         get_inventories_use_case=inventory_container.get_inventories_by_apiary_use_case
+    )
+
+    mock_ai_service = providers.Singleton(MockAIServiceImpl)
+    
+    openai_service = providers.Singleton(
+        OpenAIServiceImpl,
+        api_key=config.AI.openai_api_key
+    )
+
+    deepseek_service = providers.Singleton(
+        DeepSeekServiceImpl,
+        api_key=config.AI.deepseek_api_key
+    )
+
+    gemini_service = providers.Singleton(
+        GeminiServiceImpl,
+        api_key=config.AI.gemini_api_key
+    )
+
+    ai_provider_registry = providers.Singleton(
+        AIProviderRegistry,
+        providers=providers.Dict({
+            "mock": mock_ai_service,
+            "openai": openai_service,
+            "deepseek": deepseek_service,
+            "gemini": gemini_service
+        }),
+        default_provider=config.AI.default_provider
+    )
+
+    session_repository = providers.Singleton(
+        InMemoryAISessionRepository
+    )
+
+    process_ai_prompt_use_case = providers.Factory(
+        ProcessAIPromptUseCase,
+        provider_registry=ai_provider_registry,
+        session_repository=session_repository
     )
