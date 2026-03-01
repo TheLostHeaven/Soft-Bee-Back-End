@@ -32,6 +32,10 @@ from src.features.beehive.application.use_cases.get_beehive_by_id import GetBeeh
 from src.features.beehive.application.use_cases.get_all_beehives_by_apiary_id import GetAllBeehivesByApiaryIdUseCase
 from src.features.beehive.application.use_cases.update_beehive import UpdateBeehiveUseCase
 from src.features.beehive.application.use_cases.delete_beehive import DeleteBeehiveUseCase
+from src.features.treatments.infrastructure.repositories.treatment_repository_impl import TreatmentRepositoryImpl
+from src.features.treatments.application.use_cases.create_treatment import CreateTreatmentUseCase
+from src.features.treatments.application.use_cases.get_treatments import GetTreatmentsByHiveUseCase
+from src.features.treatments.application.use_cases.create_followup import CreateFollowupUseCase
 from src.features.inventory.application.dependency_injection import InventoryContainer
 
 from src.features.ai_agent.infrastructure.services.ai_service_impl import MockAIServiceImpl
@@ -206,6 +210,26 @@ class MainContainer(containers.DeclarativeContainer):
     delete_beehive_use_case = providers.Factory(
         DeleteBeehiveUseCase,
         repository=beehive_repository
+    )
+
+    treatment_repository = providers.Factory(
+        TreatmentRepositoryImpl,
+        db_session=db_session
+    )
+
+    create_treatment_use_case = providers.Factory(
+        CreateTreatmentUseCase,
+        repository=treatment_repository
+    )
+
+    get_treatments_by_hive_use_case = providers.Factory(
+        GetTreatmentsByHiveUseCase,
+        repository=treatment_repository
+    )
+
+    create_followup_use_case = providers.Factory(
+        CreateFollowupUseCase,
+        repository=treatment_repository
     )
 
     get_user_full_data_use_case = providers.Factory(
