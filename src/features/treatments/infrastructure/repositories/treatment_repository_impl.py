@@ -107,6 +107,10 @@ class TreatmentRepositoryImpl(TreatmentRepository):
         self.db_session.refresh(model)
         return self._to_followup_entity(model)
 
+    def find_followup_by_id(self, followup_id: UUID) -> Optional[TreatmentFollowup]:
+        model = self.db_session.query(TreatmentFollowupModel).filter(TreatmentFollowupModel.followup_id == followup_id).first()
+        return self._to_followup_entity(model) if model else None
+
     def delete_followup(self, followup_id: UUID) -> bool:
         model = self.db_session.query(TreatmentFollowupModel).filter(TreatmentFollowupModel.followup_id == followup_id).first()
         if model:
