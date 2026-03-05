@@ -14,7 +14,6 @@ class Question:
     display_order: int = 0
     min_value: Optional[int] = None
     max_value: Optional[int] = None
-    score: Optional[float] = None
     options: Optional[List[str]] = None
     depends_on: Optional[str] = None
     is_active: bool = True

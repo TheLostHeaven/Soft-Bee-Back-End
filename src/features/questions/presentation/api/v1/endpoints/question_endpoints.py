@@ -91,16 +91,38 @@ def reorder_questions_endpoint(apiary_id: str):
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
+@questions_bp.route("/templates", methods=['GET'])
+def get_question_templates_endpoint():
+    try:
+        # Busca el archivo en la raíz del proyecto (fuera de src)
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+        config_path = os.path.join(base_dir, 'config', 'preguntas_config.json')
+        
+        if not os.path.exists(config_path):
+            config_path = os.path.join(current_app.root_path, 'config', 'preguntas_config.json')
+
+        if not os.path.exists(config_path):
+            return jsonify({'error': 'Config file not found'}), HTTPStatus.NOT_FOUND
+
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        return jsonify(config.get("preguntas", [])), HTTPStatus.OK
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
 @questions_bp.route("/load_defaults/<string:apiary_id>", methods=['POST'])
 def load_default_questions_endpoint(apiary_id: str):
     try:
         from src.features.questions.application.use_cases.load_default_questions import LoadDefaultQuestionsUseCase
         use_case: LoadDefaultQuestionsUseCase = current_app.container.load_default_questions_use_case()
         
-        # In a real app, this might come from a file or DB.
-        # The user provided a JSON structure in the prompt.
-        # We can assume it's in src/config/preguntas_config.json as in the previous code.
-        config_path = os.path.join(current_app.root_path, 'config', 'preguntas_config.json')
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+        config_path = os.path.join(base_dir, 'config', 'preguntas_config.json')
+        
+        if not os.path.exists(config_path):
+            config_path = os.path.join(current_app.root_path, 'config', 'preguntas_config.json')
+
         if not os.path.exists(config_path):
             return jsonify({'error': 'Config file not found'}), HTTPStatus.NOT_FOUND
 

@@ -14,7 +14,6 @@ class QuestionDto:
     display_order: int = 0
     min_value: Optional[int] = None
     max_value: Optional[int] = None
-    score: Optional[float] = None
     options: Optional[List[str]] = None
     depends_on: Optional[str] = None
     is_active: bool = True
@@ -32,7 +31,6 @@ class CreateQuestionDto:
     display_order: int = 0
     min_value: Optional[int] = None
     max_value: Optional[int] = None
-    score: Optional[float] = None
     options: Optional[List[str]] = None
     depends_on: Optional[str] = None
     is_active: bool = True
@@ -47,7 +45,6 @@ class UpdateQuestionDto:
     display_order: Optional[int] = None
     min_value: Optional[int] = None
     max_value: Optional[int] = None
-    score: Optional[float] = None
     options: Optional[List[str]] = None
     depends_on: Optional[str] = None
     is_active: Optional[bool] = None

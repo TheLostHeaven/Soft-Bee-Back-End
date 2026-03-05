@@ -18,7 +18,6 @@ class QuestionModel(Base):
     display_order = Column(Integer, default=0, nullable=False)
     min_value = Column(Integer, nullable=True)
     max_value = Column(Integer, nullable=True)
-    score = Column(Float, nullable=True)
     options = Column(JSONB, nullable=True)
     depends_on = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
