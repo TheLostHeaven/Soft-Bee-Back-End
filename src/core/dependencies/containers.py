@@ -35,7 +35,12 @@ from src.features.beehive.application.use_cases.delete_beehive import DeleteBeeh
 from src.features.treatments.infrastructure.repositories.treatment_repository_impl import TreatmentRepositoryImpl
 from src.features.treatments.application.use_cases.create_treatment import CreateTreatmentUseCase
 from src.features.treatments.application.use_cases.get_treatments import GetTreatmentsByHiveUseCase
+from src.features.treatments.application.use_cases.get_treatment_by_id import GetTreatmentByIdUseCase
+from src.features.treatments.application.use_cases.update_treatment import UpdateTreatmentUseCase
+from src.features.treatments.application.use_cases.delete_treatment import DeleteTreatmentUseCase
 from src.features.treatments.application.use_cases.create_followup import CreateFollowupUseCase
+from src.features.treatments.application.use_cases.update_followup import UpdateFollowupUseCase
+from src.features.treatments.application.use_cases.delete_followup import DeleteFollowupUseCase
 from src.features.inventory.application.dependency_injection import InventoryContainer
 
 from src.features.ai_agent.infrastructure.services.ai_service_impl import MockAIServiceImpl
@@ -227,8 +232,33 @@ class MainContainer(containers.DeclarativeContainer):
         repository=treatment_repository
     )
 
+    get_treatment_by_id_use_case = providers.Factory(
+        GetTreatmentByIdUseCase,
+        repository=treatment_repository
+    )
+
+    update_treatment_use_case = providers.Factory(
+        UpdateTreatmentUseCase,
+        repository=treatment_repository
+    )
+
+    delete_treatment_use_case = providers.Factory(
+        DeleteTreatmentUseCase,
+        repository=treatment_repository
+    )
+
     create_followup_use_case = providers.Factory(
         CreateFollowupUseCase,
+        repository=treatment_repository
+    )
+
+    update_followup_use_case = providers.Factory(
+        UpdateFollowupUseCase,
+        repository=treatment_repository
+    )
+
+    delete_followup_use_case = providers.Factory(
+        DeleteFollowupUseCase,
         repository=treatment_repository
     )
 
