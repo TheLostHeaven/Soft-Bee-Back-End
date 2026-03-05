@@ -25,5 +25,9 @@ class TreatmentRepository(ABC):
         pass
 
     @abstractmethod
+    def find_followup_by_id(self, followup_id: UUID) -> Optional[TreatmentFollowup]:
+        pass
+
+    @abstractmethod
     def delete_followup(self, followup_id: UUID) -> bool:
         pass
