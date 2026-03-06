@@ -17,6 +17,12 @@ from src.features.inventory.application.use_cases.get_inventory_summary_use_case
 from src.features.inventory.application.use_cases.adjust_inventory_use_case import (
     AdjustInventoryUseCase,
 )
+from src.features.inventory.application.use_cases.register_movement_use_case import (
+    RegisterMovementUseCase,
+)
+from src.features.inventory.application.use_cases.get_inventory_movements_use_case import (
+    GetInventoryMovementsUseCase,
+)
 from src.features.inventory.infrastructure.repositories.inventory_repository import (
     InventoryRepositoryImpl,
 )
@@ -49,4 +55,10 @@ class InventoryContainer(containers.DeclarativeContainer):
     )
     adjust_inventory_use_case = providers.Factory(
         AdjustInventoryUseCase, repository=inventory_repository
+    )
+    register_movement_use_case = providers.Factory(
+        RegisterMovementUseCase, repository=inventory_repository
+    )
+    get_inventory_movements_use_case = providers.Factory(
+        GetInventoryMovementsUseCase, repository=inventory_repository
     )

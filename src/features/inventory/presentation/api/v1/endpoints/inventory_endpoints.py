@@ -1,4 +1,3 @@
-
 from flask import Blueprint, request, jsonify
 from dependency_injector.wiring import inject, Provide
 from http import HTTPStatus
@@ -21,10 +20,17 @@ from src.features.inventory.application.use_cases.get_inventory_summary_use_case
 from src.features.inventory.application.use_cases.adjust_inventory_use_case import (
     AdjustInventoryUseCase,
 )
+from src.features.inventory.application.use_cases.register_movement_use_case import (
+    RegisterMovementUseCase,
+)
+from src.features.inventory.application.use_cases.get_inventory_movements_use_case import (
+    GetInventoryMovementsUseCase,
+)
 from src.features.inventory.application.dto.inventory_dto import (
     CreateInventoryDTO,
     UpdateInventoryDTO,
     AdjustInventoryDTO,
+    RegisterMovementDTO,
 )
 from src.features.inventory.application.mappers.inventory_mapper import InventoryMapper
 from src.features.inventory.domain.exceptions.inventory_exceptions import (
@@ -45,8 +51,7 @@ def get_inventory_summary(
     ],
 ):
     summary_data = get_inventory_summary_use_case.execute(user_id)
-    # The use case already returns DTOs, so we just need to serialize them
-    return jsonify([item.dict() for item in summary_data]), 200
+    return jsonify([item.model_dump() for item in summary_data]), 200
 
 
 @inventory_bp.route("/<uuid:apiary_id>", methods=["GET"])
@@ -59,7 +64,7 @@ def get_inventories(
 ):
     inventories = get_inventories_use_case.execute(apiary_id)
     dtos = [InventoryMapper.to_dto(inventory) for inventory in inventories]
-    return jsonify([dto.dict() for dto in dtos]), 200
+    return jsonify([dto.model_dump() for dto in dtos]), 200
 
 
 @inventory_bp.route("/", methods=["POST"])
@@ -72,7 +77,7 @@ def create_inventory(
     data = request.get_json()
     dto = CreateInventoryDTO(**data)
     inventory = create_inventory_use_case.execute(dto)
-    return jsonify(InventoryMapper.to_dto(inventory).dict()), 201
+    return jsonify(InventoryMapper.to_dto(inventory).model_dump()), 201
 
 
 @inventory_bp.route("/<uuid:inventory_id>", methods=["PUT"])
@@ -86,7 +91,7 @@ def update_inventory(
     data = request.get_json()
     dto = UpdateInventoryDTO(**data)
     inventory = update_inventory_use_case.execute(inventory_id, dto)
-    return jsonify(InventoryMapper.to_dto(inventory).dict()), 200
+    return jsonify(InventoryMapper.to_dto(inventory).model_dump()), 200
 
 
 @inventory_bp.route("/<uuid:inventory_id>/adjust", methods=["PUT"])
@@ -101,13 +106,46 @@ def adjust_inventory(
         data = request.get_json()
         dto = AdjustInventoryDTO(**data)
         inventory = adjust_inventory_use_case.execute(inventory_id, dto)
-        return jsonify(InventoryMapper.to_dto(inventory).dict()), HTTPStatus.OK
+        return jsonify(InventoryMapper.to_dto(inventory).model_dump()), HTTPStatus.OK
     except InventoryNotFoundError as e:
         return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND
     except InvalidInventoryAdjustmentError as e:
         return jsonify({"message": str(e)}), HTTPStatus.BAD_REQUEST
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+@inventory_bp.route("/movement", methods=["POST"])
+@inject
+def register_movement(
+    register_movement_use_case: RegisterMovementUseCase = Provide[
+        MainContainer.inventory_container.register_movement_use_case
+    ],
+):
+    try:
+        data = request.get_json()
+        dto = RegisterMovementDTO(**data)
+        movement = register_movement_use_case.execute(dto)
+        return jsonify(InventoryMapper.movement_to_dto(movement).model_dump()), 201
+    except InventoryNotFoundError as e:
+        return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND
+    except InvalidInventoryAdjustmentError as e:
+        return jsonify({"message": str(e)}), HTTPStatus.BAD_REQUEST
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+@inventory_bp.route("/<uuid:inventory_id>/movements", methods=["GET"])
+@inject
+def get_movements(
+    inventory_id: UUID,
+    get_movements_use_case: GetInventoryMovementsUseCase = Provide[
+        MainContainer.inventory_container.get_inventory_movements_use_case
+    ],
+):
+    movements = get_movements_use_case.execute(inventory_id)
+    dtos = [InventoryMapper.movement_to_dto(m) for m in movements]
+    return jsonify([dto.model_dump() for dto in dtos]), 200
 
 
 @inventory_bp.route("/<uuid:inventory_id>", methods=["DELETE"])

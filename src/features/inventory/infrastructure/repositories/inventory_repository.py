@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from src.features.inventory.application.interfaces.repositories.inventory_repository import (
     InventoryRepository,
 )
-from src.features.inventory.domain.entities.inventory import Inventory
-from src.features.inventory.infrastructure.models.inventory_model import InventoryModel
+from src.features.inventory.domain.entities.inventory import Inventory, InventoryMovement
+from src.features.inventory.infrastructure.models.inventory_model import InventoryModel, InventoryMovementModel
 from src.features.inventory.application.mappers.inventory_mapper import InventoryMapper
 from uuid import UUID
 
@@ -44,10 +44,18 @@ class InventoryRepositoryImpl(InventoryRepository):
         )
         if model:
             model.name = inventory.name
+            model.category = inventory.category
             model.quantity = inventory.quantity
             model.unit = inventory.unit
             model.description = inventory.description
             model.minimum_stock = inventory.minimum_stock
+            
+            # Nuevos campos
+            model.batch_number = inventory.batch_number
+            model.expiry_date = inventory.expiry_date
+            model.supplier = inventory.supplier
+            model.storage_location = inventory.storage_location
+            
             self.session.commit()
             self.session.refresh(model)
             return InventoryMapper.to_entity(model)
@@ -62,3 +70,29 @@ class InventoryRepositoryImpl(InventoryRepository):
         if model:
             self.session.delete(model)
             self.session.commit()
+
+    def create_movement(self, movement: InventoryMovement) -> InventoryMovement:
+        model = InventoryMovementModel(
+            id=movement.id,
+            inventory_id=movement.inventory_id,
+            movement_type=movement.movement_type,
+            quantity=movement.quantity,
+            stock_before=movement.stock_before,
+            stock_after=movement.stock_after,
+            reason=movement.reason,
+            date=movement.date,
+            notes=movement.notes
+        )
+        self.session.add(model)
+        self.session.commit()
+        self.session.refresh(model)
+        return InventoryMapper.movement_to_entity(model)
+
+    def get_movements(self, inventory_id: UUID) -> List[InventoryMovement]:
+        models = (
+            self.session.query(InventoryMovementModel)
+            .filter(InventoryMovementModel.inventory_id == inventory_id)
+            .order_by(InventoryMovementModel.date.desc())
+            .all()
+        )
+        return [InventoryMapper.movement_to_entity(model) for model in models]

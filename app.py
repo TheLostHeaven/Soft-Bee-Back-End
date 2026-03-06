@@ -31,8 +31,16 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     # Dynamic CORS configuration
     origins = os.environ.get('CORS_ORIGINS')
     if origins:
-        origins_list = origins.split(',')
-        CORS(app, resources={r"/api/*": {"origins": origins_list}})
+        origins_list = [o.strip() for o in origins.split(',')]
+        CORS(app, resources={
+            r"/api/*": {
+                "origins": origins_list,
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization", "Accept"],
+                "expose_headers": ["Content-Type", "Authorization"],
+                "supports_credentials": True
+            }
+        })
     else:
         # Default CORS configuration if the environment variable is not set
         CORS(app, resources={r"/api/*": {"origins": "*"}})

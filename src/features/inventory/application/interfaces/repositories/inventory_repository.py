@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from uuid import UUID
 
-from src.features.inventory.domain.entities.inventory import Inventory
+from src.features.inventory.domain.entities.inventory import Inventory, InventoryMovement
 
 
 class InventoryRepository(ABC):
@@ -24,4 +24,12 @@ class InventoryRepository(ABC):
 
     @abstractmethod
     def delete(self, inventory_id: UUID) -> None:
+        pass
+
+    @abstractmethod
+    def create_movement(self, movement: InventoryMovement) -> InventoryMovement:
+        pass
+
+    @abstractmethod
+    def get_movements(self, inventory_id: UUID) -> List[InventoryMovement]:
         pass
