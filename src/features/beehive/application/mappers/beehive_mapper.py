@@ -17,6 +17,7 @@ class BeehiveMapper:
             health_status=beehive.health_status,
             has_production_chamber=beehive.has_production_chamber,
             observations=beehive.observations,
-            created_at=beehive.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            updated_at=beehive.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+            treatments=beehive.treatments,
+            created_at=beehive.created_at.strftime("%Y-%m-%d %H:%M:%S") if beehive.created_at else None,
+            updated_at=beehive.updated_at.strftime("%Y-%m-%d %H:%M:%S") if beehive.updated_at else None,
         )

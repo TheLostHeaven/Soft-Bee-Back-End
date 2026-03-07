@@ -27,7 +27,8 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
             hive_status=beehive_data.get('hive_status'),
             health_status=beehive_data.get('health_status'),
             has_production_chamber=beehive_data.get('has_production_chamber'),
-            observations=beehive_data.get('observations')
+            observations=beehive_data.get('observations'),
+            treatments=beehive_data.get('treatments', False)
         )
         self.db_session.add(new_beehive)
         self.db_session.flush()  # Flush to get the ID
@@ -98,6 +99,7 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
             health_status=model.health_status,
             has_production_chamber=model.has_production_chamber,
             observations=model.observations,
+            treatments=model.treatments,
             created_at=model.created_at,
             updated_at=model.updated_at
         )
