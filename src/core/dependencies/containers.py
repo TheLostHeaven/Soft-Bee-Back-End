@@ -43,6 +43,17 @@ from src.features.treatments.application.use_cases.update_followup import Update
 from src.features.treatments.application.use_cases.delete_followup import DeleteFollowupUseCase
 from src.features.inventory.application.dependency_injection import InventoryContainer
 
+from src.features.questions.infrastructure.repositories.sqlalchemy_question_repository import SQLAlchemyQuestionRepository
+from src.features.questions.application.use_cases.initialize_apiary_questions import InitializeApiaryQuestions
+from src.features.questions.application.use_cases.initialize_hive_questions import InitializeHiveQuestions
+from src.features.questions.application.use_cases.get_hive_questions import GetHiveQuestions
+from src.features.questions.application.use_cases.update_hive_question import UpdateHiveQuestion
+from src.features.questions.application.use_cases.delete_hive_question import DeleteHiveQuestion
+from src.features.questions.application.use_cases.assign_question_to_hive import AssignQuestionToHive
+from src.features.questions.application.use_cases.create_apiary_question import CreateApiaryQuestion
+from src.features.questions.application.use_cases.get_apiary_questions import GetApiaryQuestions
+from src.features.questions.application.use_cases.update_apiary_question import UpdateApiaryQuestion
+
 from src.features.ai_agent.infrastructure.services.ai_service_impl import MockAIServiceImpl
 from src.features.ai_agent.infrastructure.services.openai_service_impl import OpenAIServiceImpl
 from src.features.ai_agent.infrastructure.services.deepseek_service_impl import DeepSeekServiceImpl
@@ -136,10 +147,61 @@ class MainContainer(containers.DeclarativeContainer):
         db_session=db_session
     )
 
+    question_repository = providers.Factory(
+        SQLAlchemyQuestionRepository,
+        db_session=db_session
+    )
+
+    initialize_apiary_questions_use_case = providers.Factory(
+        InitializeApiaryQuestions,
+        question_repository=question_repository
+    )
+
+    initialize_hive_questions_use_case = providers.Factory(
+        InitializeHiveQuestions,
+        question_repository=question_repository
+    )
+
+    get_hive_questions_use_case = providers.Factory(
+        GetHiveQuestions,
+        question_repository=question_repository
+    )
+
+    update_hive_question_use_case = providers.Factory(
+        UpdateHiveQuestion,
+        question_repository=question_repository
+    )
+
+    delete_hive_question_use_case = providers.Factory(
+        DeleteHiveQuestion,
+        question_repository=question_repository
+    )
+
+    assign_question_to_hive_use_case = providers.Factory(
+        AssignQuestionToHive,
+        question_repository=question_repository
+    )
+
+    create_apiary_question_use_case = providers.Factory(
+        CreateApiaryQuestion,
+        question_repository=question_repository
+    )
+
+    get_apiary_questions_use_case = providers.Factory(
+        GetApiaryQuestions,
+        question_repository=question_repository
+    )
+
+    update_apiary_question_use_case = providers.Factory(
+        UpdateApiaryQuestion,
+        question_repository=question_repository
+    )
+
     create_apiary_use_case = providers.Factory(
         CreateApiary,
         apiary_repository=apiary_repository,
-        create_inventory_use_case=inventory_container.create_inventory_use_case
+        create_inventory_use_case=inventory_container.create_inventory_use_case,
+        initialize_apiary_questions_use_case=initialize_apiary_questions_use_case
     )
     
     get_apiary_by_id_use_case = providers.Factory(
@@ -194,7 +256,8 @@ class MainContainer(containers.DeclarativeContainer):
 
     create_beehive_use_case = providers.Factory(
         CreateBeehiveUseCase,
-        repository=beehive_repository
+        repository=beehive_repository,
+        initialize_hive_questions_use_case=initialize_hive_questions_use_case
     )
 
     get_beehive_by_id_use_case = providers.Factory(
