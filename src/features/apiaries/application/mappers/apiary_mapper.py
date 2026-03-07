@@ -18,7 +18,6 @@ class ApiaryMapper:
             location=apiary_model.location,
             user_id=apiary_model.user_id,
             beehives_count=apiary_model.beehives_count,
-            treatments=apiary_model.treatments,
             created_at=apiary_model.created_at,
             updated_at=apiary_model.updated_at
         )
@@ -35,7 +34,6 @@ class ApiaryMapper:
             location=apiary_entity.location,
             user_id=apiary_entity.user_id,
             beehives_count=apiary_entity.beehives_count,
-            treatments=apiary_entity.treatments,
             created_at=apiary_entity.created_at,
             updated_at=apiary_entity.updated_at
         )
@@ -52,7 +50,6 @@ class ApiaryMapper:
             location=apiary_entity.location,
             user_id=str(apiary_entity.user_id),
             beehives_count=apiary_entity.beehives_count,
-            treatments=apiary_entity.treatments,
             created_at=apiary_entity.created_at,
             updated_at=apiary_entity.updated_at
         )
@@ -65,8 +62,7 @@ class ApiaryMapper:
             user_id=create_dto.user_id,
             name=create_dto.name,
             location=create_dto.location,
-            beehives_count=create_dto.beehives_count,
-            treatments=create_dto.treatments
+            beehives_count=create_dto.beehives_count
         )
 
     @staticmethod
@@ -78,6 +74,4 @@ class ApiaryMapper:
         existing_entity.name = update_dto.name if update_dto.name is not None else existing_entity.name
         existing_entity.location = update_dto.location if update_dto.location is not None else existing_entity.location
         existing_entity.beehives_count = update_dto.beehives_count if update_dto.beehives_count is not None else existing_entity.beehives_count
-        existing_entity.treatments = update_dto.treatments if update_dto.treatments is not None else existing_entity.treatments
-        # user_id is not updatable via this DTO based on current DTO structure
         return existing_entity

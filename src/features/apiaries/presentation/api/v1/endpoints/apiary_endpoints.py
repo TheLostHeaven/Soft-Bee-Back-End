@@ -25,7 +25,7 @@ def create_apiary_endpoint():
         create_apiary_use_case: CreateApiary = current_app.container.create_apiary_use_case()
         
         apiary_dto = create_apiary_use_case.execute(create_request)
-        return jsonify(ApiaryResponseSchema.from_orm(apiary_dto).dict()), HTTPStatus.CREATED
+        return jsonify(ApiaryResponseSchema.model_validate(apiary_dto).model_dump()), HTTPStatus.CREATED
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except ApiaryAlreadyExistsError as e:
@@ -38,7 +38,7 @@ def get_all_apiaries_endpoint():
     try:
         get_all_apiaries_use_case: GetAllApiaries = current_app.container.get_all_apiaries_use_case()
         apiaries_dto = get_all_apiaries_use_case.execute()
-        return jsonify([ApiaryResponseSchema.from_orm(apiary).dict() for apiary in apiaries_dto]), HTTPStatus.OK
+        return jsonify([ApiaryResponseSchema.model_validate(apiary).model_dump() for apiary in apiaries_dto]), HTTPStatus.OK
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
@@ -47,7 +47,7 @@ def get_apiary_by_id_endpoint(apiary_id: str):
     try:
         get_apiary_by_id_use_case: GetApiaryById = current_app.container.get_apiary_by_id_use_case()
         apiary_dto = get_apiary_by_id_use_case.execute(apiary_id)
-        return jsonify(ApiaryResponseSchema.from_orm(apiary_dto).dict()), HTTPStatus.OK
+        return jsonify(ApiaryResponseSchema.model_validate(apiary_dto).model_dump()), HTTPStatus.OK
     except ApiaryNotFoundError as e:
         return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND
     except Exception as e:
@@ -58,7 +58,7 @@ def get_apiaries_by_user_id_endpoint(user_id: str):
     try:
         get_apiaries_by_user_id_use_case: GetApiariesByUserId = current_app.container.get_apiaries_by_user_id_use_case()
         apiaries_dto = get_apiaries_by_user_id_use_case.execute(user_id)
-        return jsonify([ApiaryResponseSchema.from_orm(apiary).dict() for apiary in apiaries_dto]), HTTPStatus.OK
+        return jsonify([ApiaryResponseSchema.model_validate(apiary).model_dump() for apiary in apiaries_dto]), HTTPStatus.OK
     except ApiaryNotFoundError as e:
         return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND
     except Exception as e:
@@ -75,7 +75,7 @@ def update_apiary_endpoint(apiary_id: str):
         update_apiary_use_case: UpdateApiary = current_app.container.update_apiary_use_case()
         
         apiary_dto = update_apiary_use_case.execute(apiary_id, update_request)
-        return jsonify(ApiaryResponseSchema.from_orm(apiary_dto).dict()), HTTPStatus.OK
+        return jsonify(ApiaryResponseSchema.model_validate(apiary_dto).model_dump()), HTTPStatus.OK
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except ApiaryNotFoundError as e:

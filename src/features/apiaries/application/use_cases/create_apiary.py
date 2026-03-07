@@ -5,6 +5,7 @@ from src.features.apiaries.domain.entities.apiary import Apiary
 from src.features.apiaries.domain.exceptions.apiary_exceptions import ApiaryAlreadyExistsError
 from src.features.inventory.application.use_cases.create_inventory_use_case import CreateInventoryUseCase
 from src.features.inventory.application.dto.inventory_dto import CreateInventoryDTO
+from src.features.questions.application.use_cases.initialize_apiary_questions import InitializeApiaryQuestions
 
 
 class CreateApiary:
@@ -12,9 +13,11 @@ class CreateApiary:
         self,
         apiary_repository: ApiaryRepository,
         create_inventory_use_case: CreateInventoryUseCase,
+        initialize_apiary_questions_use_case: InitializeApiaryQuestions,
     ):
         self.apiary_repository = apiary_repository
         self.create_inventory_use_case = create_inventory_use_case
+        self.initialize_apiary_questions_use_case = initialize_apiary_questions_use_case
 
     def execute(self, create_dto: CreateApiaryDto) -> ApiaryDto:
         # Check if an apiary with the same name already exists for the same user
@@ -45,5 +48,8 @@ class CreateApiary:
             minimum_stock=0,
         )
         self.create_inventory_use_case.execute(inventory_dto)
+
+        # Initialize base questions for the new apiary
+        self.initialize_apiary_questions_use_case.execute(created_apiary.id)
 
         return ApiaryMapper.to_dto(created_apiary)
