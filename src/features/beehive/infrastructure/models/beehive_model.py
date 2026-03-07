@@ -4,6 +4,7 @@ from sqlalchemy import (
     Text,
     TIMESTAMP,
     ForeignKey,
+    Boolean,
 )
 from sqlalchemy.orm import relationship
 from src.core.database.db import Base
@@ -14,8 +15,8 @@ from sqlalchemy.sql import func
 class BeehiveModel(Base):
     __tablename__ = 'beehives'
 
-    id = Column(UUID(), primary_key=True, default=uuid.uuid4, index=True)
-    apiary_id = Column(UUID(), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    apiary_id = Column(UUID(as_uuid=True), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
     hive_number = Column(Integer, nullable=False, autoincrement=True, unique=True)
     activity_level = Column(Text, nullable=True)
     bee_population = Column(Text, nullable=True)
@@ -25,6 +26,7 @@ class BeehiveModel(Base):
     health_status = Column(Text, nullable=True)
     has_production_chamber = Column(Text, nullable=True)
     observations = Column(Text)
+    treatments = Column(Boolean, default=False, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
