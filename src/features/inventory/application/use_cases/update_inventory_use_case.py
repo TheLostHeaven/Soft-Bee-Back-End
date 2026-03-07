@@ -15,7 +15,7 @@ class UpdateInventoryUseCase:
         if not inventory:
             raise Exception("Inventory not found")
 
-        update_data = dto.dict(exclude_unset=True)
+        update_data = dto.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(inventory, key, value)
 

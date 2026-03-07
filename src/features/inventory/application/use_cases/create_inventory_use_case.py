@@ -21,6 +21,7 @@ class CreateInventoryUseCase:
             minimum_stock=dto.minimum_stock,
             batch_number=dto.batch_number,
             expiry_date=dto.expiry_date,
+            purchase_date=dto.purchase_date,
             supplier=dto.supplier,
             storage_location=dto.storage_location,
             created_at=None,

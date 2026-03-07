@@ -17,6 +17,7 @@ class InventoryDTO(BaseModel):
     # Nuevos campos
     batch_number: Optional[str] = None
     expiry_date: Optional[date] = None
+    purchase_date: Optional[date] = None
     supplier: Optional[str] = None
     storage_location: Optional[str] = None
     
@@ -36,6 +37,7 @@ class CreateInventoryDTO(BaseModel):
     minimum_stock: int = 0
     batch_number: Optional[str] = None
     expiry_date: Optional[date] = None
+    purchase_date: Optional[date] = None
     supplier: Optional[str] = None
     storage_location: Optional[str] = None
 
@@ -49,6 +51,7 @@ class UpdateInventoryDTO(BaseModel):
     minimum_stock: Optional[int] = None
     batch_number: Optional[str] = None
     expiry_date: Optional[date] = None
+    purchase_date: Optional[date] = None
     supplier: Optional[str] = None
     storage_location: Optional[str] = None
 

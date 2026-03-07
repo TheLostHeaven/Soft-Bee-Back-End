@@ -31,7 +31,9 @@ from sqlalchemy import (
         # Campos Profesionales
         batch_number = Column(String(50), nullable=True)
         expiry_date = Column(Date, nullable=True)
+        purchase_date = Column(Date, nullable=True)
         supplier = Column(String(100), nullable=True)
+
         storage_location = Column(String(100), nullable=True) # Bodega A, Estante 2, etc.
 
         created_at = Column(TIMESTAMP, server_default=func.now())

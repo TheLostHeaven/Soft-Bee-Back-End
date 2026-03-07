@@ -50,6 +50,8 @@ from src.features.ai_agent.infrastructure.services.gemini_service_impl import Ge
 from src.features.ai_agent.infrastructure.services.ai_provider_registry import AIProviderRegistry
 from src.features.ai_agent.infrastructure.services.session_repository_impl import InMemoryAISessionRepository
 from src.features.ai_agent.application.use_cases.process_ai_prompt import ProcessAIPromptUseCase
+from src.features.questions.infrastructure.repositories.question_repository_impl import QuestionRepositoryImpl
+from src.features.questions.application.use_cases.question_use_cases import QuestionUseCases
 
 config_obj = get_config()
 
@@ -58,6 +60,16 @@ class MainContainer(containers.DeclarativeContainer):
 
     config = providers.Configuration()
     db_session = providers.Dependency()
+
+    questions_repository = providers.Factory(
+        QuestionRepositoryImpl,
+        db_session=db_session
+    )
+
+    questions_use_cases = providers.Factory(
+        QuestionUseCases,
+        repository=questions_repository
+    )
 
     inventory_container = providers.Container(
         InventoryContainer,

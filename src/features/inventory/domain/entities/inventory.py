@@ -18,6 +18,7 @@ class Inventory:
     # Nuevos campos
     batch_number: Optional[str] = None
     expiry_date: Optional[date] = None
+    purchase_date: Optional[date] = None
     supplier: Optional[str] = None
     storage_location: Optional[str] = None
     
