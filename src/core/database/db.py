@@ -90,6 +90,7 @@ def init_app(app):
                 # Importar modelos para que SQLAlchemy los detecte
                 from src.features.auth.infrastructure.models.user_model import UserModel
                 from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
+                from src.features.questions.infrastructure.models.question_models import ApiaryQuestionModel
                 
                 db.create_all()
                 print("✅ Tablas de base de datos inicializadas correctamente")
