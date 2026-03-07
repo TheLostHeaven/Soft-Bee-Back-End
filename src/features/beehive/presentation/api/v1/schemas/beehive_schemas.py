@@ -13,6 +13,7 @@ class CreateBeehiveRequestSchema(BaseModel):
     health_status: Optional[str] = Field(None, example="Ninguno")
     has_production_chamber: Optional[str] = Field(None, example="Si")
     observations: Optional[str] = Field(None, example="La colmena se ve saludable.")
+    treatments: bool = Field(False, example=False)
 
 class UpdateBeehiveRequestSchema(BaseModel):
     activity_level: Optional[str] = Field(None, example="Media")
@@ -23,6 +24,7 @@ class UpdateBeehiveRequestSchema(BaseModel):
     health_status: Optional[str] = Field(None, example="Presencia barroa")
     has_production_chamber: Optional[str] = Field(None, example="No")
     observations: Optional[str] = Field(None, example="Se observó presencia de varroa.")
+    treatments: Optional[bool] = Field(None, example=True)
 
 class BeehiveResponseSchema(BaseModel):
     id: UUID
@@ -36,6 +38,7 @@ class BeehiveResponseSchema(BaseModel):
     health_status: Optional[str]
     has_production_chamber: Optional[str]
     observations: Optional[str]
+    treatments: bool
     created_at: Optional[str]
     updated_at: Optional[str]
 
