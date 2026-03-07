@@ -10,6 +10,5 @@ class Apiary:
     name: str
     location: Optional[str]
     beehives_count: int = 0
-    treatments: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

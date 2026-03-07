@@ -44,7 +44,6 @@ class ApiaryRepositoryImpl(ApiaryRepository):
         existing_apiary_model.location = apiary.location
         existing_apiary_model.user_id = apiary.user_id
         existing_apiary_model.beehives_count = apiary.beehives_count
-        existing_apiary_model.treatments = apiary.treatments
         existing_apiary_model.updated_at = datetime.datetime.utcnow()
         
         self.db_session.flush()
