@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, validator
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+from uuid import UUID
 
 class LoginRequestDTO(BaseModel):
     """DTO para request de login"""
@@ -14,7 +15,9 @@ class LoginResponseDTO(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
-    user: Dict[str, Any]
+    user_id: str 
+    email: str
+    username: str
 
 class RegisterRequestDTO(BaseModel):
     """DTO para request de registro"""
@@ -22,6 +25,7 @@ class RegisterRequestDTO(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=8)
     confirm_password: str = Field(..., min_length=8)
+    phone: Optional[str] = None
     
     @validator('username')
     def validate_username(cls, v):
@@ -37,12 +41,13 @@ class RegisterRequestDTO(BaseModel):
 
 class RegisterResponseDTO(BaseModel):
     """DTO para response de registro"""
-    id: str
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    user_id: str 
     email: str
     username: str
-    is_verified: bool
-    created_at: datetime
-    message: str = "User registered successfully"
 
 class RefreshTokenRequestDTO(BaseModel):
     """DTO para request de refresh token"""

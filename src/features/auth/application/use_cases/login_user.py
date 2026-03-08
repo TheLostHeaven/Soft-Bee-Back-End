@@ -1,13 +1,12 @@
-from typing import Tuple, Optional, Dict, Any
-from datetime import datetime, timedelta
-from ...application.dto.auth_dto import LoginRequestDTO, LoginResponseDTO
+# src/features/auth/application/use_cases/login_user.py
+import logging
+from uuid import UUID
+from src.features.auth.application.dto.auth_dto import LoginRequestDTO
 from ...application.interfaces.repositories.user_repository import IUserRepository
 from ...application.interfaces.services.token_service import ITokenService
-from ...domain.exceptions.auth_exceptions import (
-    InvalidCredentialsException,
-    AccountLockedException,
-    UserNotFoundException
-)
+from src.features.auth.application.interfaces.services.password_service import IPasswordService
+
+logger = logging.getLogger(__name__)
 
 class LoginUserUseCase:
     """Caso de uso: Login de usuario"""
@@ -16,83 +15,100 @@ class LoginUserUseCase:
         self,
         user_repository: IUserRepository,
         token_service: ITokenService,
-        password_hasher: Any  # PasswordHasher implementación
+        password_service: IPasswordService
     ):
         self.user_repository = user_repository
         self.token_service = token_service
-        self.password_hasher = password_hasher
+        self.password_service = password_service
     
-    def execute(self, request: LoginRequestDTO) -> Tuple[Optional[LoginResponseDTO], Optional[str]]:
-        """
-        Ejecutar login de usuario
-        
-        Returns:
-            Tuple[Optional[LoginResponseDTO], Optional[str]]: (response, error_message)
-        """
+    def execute(self, request_dto: LoginRequestDTO):
         try:
-            # 1. Buscar usuario por email
-            user = self.user_repository.find_by_email(request.email)
+            request_dto.email = request_dto.email.lower()
+            logger.info(f"Attempting login for email: {request_dto.email}")
+            
+            # 1. Buscar usuario
+            user = self.user_repository.find_by_email(request_dto.email)
+            
             if not user:
-                raise UserNotFoundException()
+                logger.warning(f"User not found: {request_dto.email}")
+                return None, "Invalid email or password"
             
-            # 2. Verificar si la cuenta está bloqueada
-            if user.is_locked():
-                raise AccountLockedException()
+            # 2. Verificar si está activo
+            if not user.is_active:
+                logger.warning(f"User not active: {request_dto.email}")
+                return None, "Account is not active"
             
-            # 3. Verificar password
-            if not self.password_hasher.verify(request.password, user.hashed_password):
-                user.login_failed()
-                self.user_repository.save(user)
-                raise InvalidCredentialsException()
-            
-            # 4. Login exitoso
-            user.login_successful()
-            self.user_repository.save(user)
-            
-            # 5. Generar tokens
-            token_data = {
-                "sub": user.id,
-                "email": str(user.email),
-                "username": user.username,
-                "is_verified": user.is_verified
-            }
-            
-            access_token = self.token_service.create_access_token(
-                token_data,
-                expires_in=86400 if request.remember_me else 900  # 24h o 15min
+            # 3. Verificar contraseña
+            password_valid = self.password_service.verify_password(
+                request_dto.password,
+                user.hashed_password
             )
             
-            refresh_token = self.token_service.create_refresh_token(
-                {"sub": user.id},
-                expires_in=2592000 if request.remember_me else 604800  # 30d o 7d
-            )
+            if not password_valid:
+                logger.warning(f"Invalid password for: {request_dto.email}")
+                return None, "Invalid email or password"
             
-            # 6. Guardar refresh token
+            # 4. Actualizar último login - Pasar el user.id directamente (ya es UUID)
+            self.user_repository.update_last_login(user.id)
+            
+            # 5. Preparar datos para tokens
+            user_id_str = str(user.id)
+            email_str = user.email.value if hasattr(user.email, 'value') else str(user.email)
+            
+            # 6. Generar tokens
+            # Usar generate_access_token si existe
+            if hasattr(self.token_service, 'generate_access_token'):
+                access_token = self.token_service.generate_access_token(
+                    user_id=user_id_str,
+                    email=email_str
+                )
+                refresh_token = self.token_service.generate_refresh_token(
+                    user_id=user_id_str,
+                    email=email_str
+                )
+            # Si no, usar create_access_token
+            elif hasattr(self.token_service, 'create_access_token'):
+                token_data = {
+                    "sub": user_id_str,
+                    "email": email_str,
+                    "user_id": user_id_str
+                }
+                access_token = self.token_service.create_access_token(token_data)
+                refresh_token = self.token_service.create_refresh_token(token_data)
+            else:
+                # Método alternativo
+                access_token = self.token_service.create_access_token(
+                    subject=user_id_str,
+                    email=email_str
+                )
+                refresh_token = self.token_service.create_refresh_token(
+                    subject=user_id_str,
+                    email=email_str
+                )
+            
+            # 7. Añadir refresh token al usuario
             self.user_repository.add_refresh_token(user.id, refresh_token)
             
-            # 7. Crear respuesta
-            response = LoginResponseDTO(
-                access_token=access_token,
-                refresh_token=refresh_token,
-                token_type="bearer",
-                expires_in=86400 if request.remember_me else 900,
-                user={
-                    "id": user.id,
-                    "email": str(user.email),
-                    "username": user.username,
-                    "is_verified": user.is_verified,
-                    "is_active": user.is_active
-                }
-            )
+            logger.info(f"Login successful for: {request_dto.email}")
+            
+            # 8. Crear respuesta
+            response = {
+                "user_id": user_id_str,
+                "email": email_str,
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+                "expires_in": 3600
+            }
+            
+            # Si necesitas username en la respuesta
+            if hasattr(user, 'username') and user.username:
+                response["username"] = user.username
             
             return response, None
             
         except Exception as e:
-            # Manejar excepciones específicas
-            error_message = str(e)
-            if isinstance(e, (InvalidCredentialsException, UserNotFoundException)):
-                error_message = "Invalid email or password"
-            elif isinstance(e, AccountLockedException):
-                error_message = "Account is locked due to multiple failed attempts"
-            
-            return None, error_message
+            logger.error(f"Error in LoginUserUseCase: {str(e)}", exc_info=True)
+            import traceback
+            traceback.print_exc()
+            return None, "Internal server error"

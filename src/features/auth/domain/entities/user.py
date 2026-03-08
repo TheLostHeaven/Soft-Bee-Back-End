@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List
+from uuid import UUID  # Import UUID
 from ...domain.value_objects.email import Email
 from ...domain.value_objects.password import Password
 from ...domain.events.auth_events import UserRegisteredEvent, UserLoggedInEvent
 from ...domain.exceptions.auth_exceptions import InvalidUserException
+
 
 @dataclass
 class User:
@@ -13,10 +15,15 @@ class User:
     email: Email
     username: str
     hashed_password: str
-    id: Optional[str] = None
+    id: Optional[UUID] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
     is_active: bool = True
     is_verified: bool = False
+    reset_token: Optional[str] = None
     last_login: Optional[datetime] = None
+    reset_token_expiry: Optional[datetime] = None
     refresh_tokens: List[str] = field(default_factory=list)
     failed_login_attempts: int = 0
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -56,7 +63,7 @@ class User:
     
     def is_locked(self) -> bool:
         """Verificar si la cuenta está bloqueada por intentos fallidos"""
-        return self.failed_login_attempts >= 5
+        return self.failed_login_attempts >= 5                                                                                              
     
     def add_refresh_token(self, token: str):
         """Agregar token de refresh a la lista"""
@@ -97,3 +104,26 @@ class User:
         events = self._events.copy()
         self._events.clear()
         return events
+    
+
+    def set_reset_token(self, token: str, expires_in_minutes: int = 30):
+        """Establecer token de reseteo"""
+        self.reset_token = token
+        self.reset_token_expires = datetime.utcnow() + timedelta(minutes=expires_in_minutes)
+    
+    def clear_reset_token(self):
+        """Limpia el token de reset"""
+        self.reset_token = None
+        self.reset_token_expiry = None
+        self.updated_at = datetime.utcnow()
+    
+    def is_reset_token_valid(self) -> bool:
+        """Verifica si el token de reset es válido"""
+        if not self.reset_token or not self.reset_token_expiry:
+            return False
+        return datetime.utcnow() < self.reset_token_expiry
+    
+    def change_password(self, new_hashed_password: str):
+        """Cambia la contraseña y limpia el token de reset"""
+        self.hashed_password = new_hashed_password
+        self.clear_reset_token()

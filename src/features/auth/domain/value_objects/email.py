@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 from ...domain.exceptions.auth_exceptions import InvalidEmailException
 
@@ -9,12 +9,16 @@ class Email:
     value: str
     
     def __post_init__(self):
+        # Normalizar a minúsculas antes de cualquier otra operación
+        # Necesitamos 'engañar' a un objeto frozen para poder modificarlo
+        object.__setattr__(self, 'value', self.value.lower())
+        
         if not self.is_valid():
             raise InvalidEmailException(f"Invalid email address: {self.value}")
     
     def is_valid(self) -> bool:
         """Validar formato de email"""
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        pattern = r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$'
         return bool(re.match(pattern, self.value))
     
     def get_domain(self) -> str:
@@ -30,8 +34,8 @@ class Email:
     
     def __eq__(self, other) -> bool:
         if isinstance(other, Email):
-            return self.value.lower() == other.value.lower()
+            return self.value == other.value
         return False
     
     def __hash__(self) -> int:
-        return hash(self.value.lower())
+        return hash(self.value)

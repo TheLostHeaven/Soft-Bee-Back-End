@@ -11,55 +11,51 @@ db = SQLAlchemy()
 migrate = Migrate()
 Base = declarative_base()
 
-def get_db():
-    if 'db' not in g:
-        database_url = current_app.config.get('DATABASE_URL')
-        
-        if not database_url:
-            raise ValueError("DATABASE_URL no está configurada")
-        
-        # Detectar tipo de base de datos
-        if database_url.startswith('postgresql') or database_url.startswith('postgres'):
-            # Configuración para PostgreSQL
-            if database_url.startswith("postgres://"):
-                database_url = database_url.replace("postgres://", "postgresql://", 1)
-            
-            # Agregar SSL si es necesario
-            sslmode_require = os.getenv('SSL_MODE', '') == 'require'
-            if sslmode_require and 'sslmode=' not in database_url:
-                separator = '?' if '?' not in database_url else '&'
-                database_url += f"{separator}sslmode=require"
-            
-            g.db = psycopg2.connect(database_url)
-            g.db_type = 'postgresql'
-        else:
-            raise ValueError(f"Tipo de base de datos no soportado: {database_url}")
-    
-    return g.db
-
-def close_db(e=None):
-    db = g.pop('db', None)
-    if db is not None:
-        db.close()
+def get_db() -> Session:
+    """Retorna la sesión de SQLAlchemy gestionada por Flask-SQLAlchemy"""
+    return db.session
 
 def init_app(app):
     """Inicializa la base de datos con la aplicación Flask"""
     
     # Configurar SQLAlchemy para migraciones
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config.get('DATABASE_URL')
+    database_url = app.config.get('DATABASE_URL')
+    
+    if not database_url:
+        raise ValueError("DATABASE_URL no está configurada")
+
+    # Reemplazar 'postgres://' con 'postgresql://' para compatibilidad con SQLAlchemy
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    
+    # Agregar SSL si es necesario
+    sslmode_require = os.getenv('SSL_MODE', '') == 'require'
+    if sslmode_require and 'sslmode=' not in database_url:
+        separator = '?' if '?' not in database_url else '&'
+        database_url += f"{separator}sslmode=require"
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Inicializar SQLAlchemy y Flask-Migrate
     db.init_app(app)
     migrate.init_app(app, db)
     
-    # Mantener el sistema actual para compatibilidad
-    app.teardown_appcontext(close_db)
-
+    @app.teardown_appcontext
+    def teardown_db(exception=None):
+        """Asegura que la sesión de la base de datos se cierre después de cada solicitud."""
+        session = db.session
+        try:
+            if exception is None:
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            # Optionally log the exception e
+            raise
+        finally:
+            session.remove()
+    
     with app.app_context():
-        # Importar modelos para que Flask-Migrate los detecte
-        from src.features.auth.infrastructure.models.user_model import UserModel
-        
         # Mostrar información del entorno y base de datos
         env = os.getenv('FLASK_ENV', 'local')
         config_name = app.config.__class__.__name__
@@ -73,41 +69,30 @@ def init_app(app):
             # Ocultar credenciales en la URL para seguridad
             safe_uri = db_uri.split('@')[-1] if '@' in db_uri else db_uri
             print(f"📂 Usando base de datos: {db_type}")
-            print(f"🔗 Servidor PostgreSQL: {safe_uri.split('/')[0]}")
         else:
             print(f"🚀 Iniciando aplicación en entorno: {env}")
             print(f"📂 Usando base de datos: desconocida")
             
+        # Para depuración: mostrar la URL completa de la base de datos si el entorno es local o de desarrollo
+        if env in ['local', 'development']:
+            print(f"🔎 DEBUG - DATABASE_URL (completa): {app.config.get('SQLALCHEMY_DATABASE_URI')}")
+
         print(f"🌐 URLs configuradas:")
         print(f"   Frontend: {app.config.get('FRONTEND_URL')}")
         print(f"   Backend: {app.config.get('BASE_URL')}")
         print(f"🐛 Debug mode: {app.config.get('DEBUG', False)}")
 
         # Solo crear tablas automáticamente si no existen migraciones
-        migrations_dir = os.path.join(app.root_path, '..', 'migrations')
+        migrations_dir = os.path.join(app.root_path, 'migrations')
         if not os.path.exists(migrations_dir):
             print(" No se encontraron migraciones, creando tablas automáticamente...")
             try:
-                # Crear tablas usando el sistema actual para compatibilidad
+                # Importar modelos para que SQLAlchemy los detecte
+                from src.features.auth.infrastructure.models.user_model import UserModel
+                from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
+                from src.features.questions.infrastructure.models.question_models import ApiaryQuestionModel
+                
                 db.create_all()
-                
-                # from src.models.users import UserModel
-                # from src.models.password_reset_tokens import PasswordResetTokenModel
-                # from src.models.apiary import ApiaryModel
-                # from src.models.hive import HiveModel
-                # from src.models.apiary_access import ApiaryAccessModel
-                # from src.models.questions import QuestionModel
-                # from src.models.inventory import InventoryModel
-                # from src.models.monitoreo import MonitoreoModel
-                
-                # UserModel.init_db(db_connection)
-                # PasswordResetTokenModel.init_db(db_connection)
-                # ApiaryModel.init_db(db_connection)
-                # QuestionModel.init_db(db_connection)
-                # InventoryModel.init_db(db_connection)
-                # HiveModel.init_db(db_connection)
-                # ApiaryAccessModel.init_db(db_connection)
-                # MonitoreoModel.init_db(db_connection)
                 print("✅ Tablas de base de datos inicializadas correctamente")
             except Exception as e:
                 print(f"❌ Error al inicializar tablas: {e}")

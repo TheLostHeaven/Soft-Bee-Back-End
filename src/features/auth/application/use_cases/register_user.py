@@ -1,69 +1,100 @@
-from typing import Tuple, Optional, Dict, Any
-from datetime import datetime
-from ...domain.entities.user import User
-from ...domain.value_objects.email import Email
-from ...application.dto.auth_dto import RegisterRequestDTO, RegisterResponseDTO
-from ...application.interfaces.repositories.user_repository import IUserRepository
-from ...domain.exceptions.auth_exceptions import EmailAlreadyExistsException
+# src/features/auth/application/use_cases/register_user.py
+import logging
+from src.features.auth.application.dto.auth_dto import RegisterRequestDTO, RegisterResponseDTO
+from src.features.auth.application.interfaces.repositories.user_repository import IUserRepository
+from src.features.auth.application.interfaces.services.token_service import ITokenService
+from src.features.auth.application.interfaces.services.password_service import IPasswordService
+
+from src.features.auth.domain.entities.user import User
+from src.features.auth.domain.value_objects.email import Email
+
+logger = logging.getLogger(__name__)
 
 class RegisterUserUseCase:
-    """Caso de uso: Registrar usuario"""
-    
     def __init__(
         self,
         user_repository: IUserRepository,
-        password_hasher: Any,
-        event_publisher: Optional[Any] = None
+        password_service: IPasswordService,
+        token_service: ITokenService
     ):
         self.user_repository = user_repository
-        self.password_hasher = password_hasher
-        self.event_publisher = event_publisher
+        self.token_service = token_service
+        self.password_service = password_service
     
-    def execute(self, request: RegisterRequestDTO) -> Tuple[Optional[RegisterResponseDTO], Optional[str]]:
+    # **CORRECCIÓN: ESTE MÉTODO DEBE ESTAR INDENTADO DENTRO DE LA CLASE**
+    def execute(self, request_dto: RegisterRequestDTO):
         """
-        Ejecutar registro de usuario
+        Ejecuta el registro de un nuevo usuario
         
         Returns:
-            Tuple[Optional[RegisterResponseDTO], Optional[str]]: (response, error_message)
+            tuple: (RegisterResponseDTO, error_message) o (None, error_message)
         """
         try:
-            # 1. Verificar si email ya existe
-            if self.user_repository.exists_by_email(request.email):
-                raise EmailAlreadyExistsException()
+            logger.info(f"Attempting registration for email: {request_dto.email}")
             
-            # 2. Verificar si username ya existe
-            if self.user_repository.exists_by_username(request.username):
-                return None, "Username already exists"
+            # 1. Verificar si el usuario ya existe por email
+            existing_user = self.user_repository.find_by_email(request_dto.email)
+            if existing_user:
+                logger.warning(f"Registration failed: email already exists {request_dto.email}")
+                return None, "Email already registered"
             
-            # 3. Hash password
-            hashed_password = self.password_hasher.hash(request.password)
+            # 2. Verificar si el username ya existe
+            existing_user_by_username = self.user_repository.find_by_username(request_dto.username)
+            if existing_user_by_username:
+                logger.warning(f"Registration failed: username already exists {request_dto.username}")
+                return None, "Username already taken"
             
-            # 4. Crear entidad de dominio
+            # 3. Hashear la contraseña
+            hashed_password = self.password_service.hash_password(request_dto.password)
+            
+            # 4. Crear Email Value Object
+            email_obj = Email(request_dto.email)
+            
+            # 5. Crear entidad de usuario
             user = User(
-                email=Email(request.email),
-                username=request.username,
-                hashed_password=hashed_password
+                email=email_obj,
+                username=request_dto.username,
+                hashed_password=hashed_password,
+                phone=request_dto.phone,
+                is_active=True,
+                is_verified=False
             )
             
-            # 5. Guardar usuario
+            # 6. Guardar usuario en la base de datos
             saved_user = self.user_repository.save(user)
             
-            # 6. Publicar evento si hay publisher
-            if self.event_publisher:
-                events = saved_user.pull_events()
-                for event in events:
-                    self.event_publisher.publish(event)
+            # 7. Generar tokens de autenticación
             
-            # 7. Crear respuesta
+            access_token = self.token_service.generate_access_token(
+                user_id=str(saved_user.id),
+                email=saved_user.email.value,
+                expires_in=3600
+            )
+            
+            refresh_token = self.token_service.generate_refresh_token(
+                user_id=str(saved_user.id),
+                email=saved_user.email.value,
+                expires_in=2592000
+            )
+            
+            # 8. Añadir refresh token al usuario
+            self.user_repository.add_refresh_token(str(saved_user.id), refresh_token)
+            
+            logger.info(f"Registration successful for user: {saved_user.email}")
+            
+            # 9. Crear y retornar respuesta DTO
             response = RegisterResponseDTO(
-                id=saved_user.id,
-                email=str(saved_user.email),
+                user_id=str(saved_user.id),
+                email=saved_user.email.value,
                 username=saved_user.username,
-                is_verified=saved_user.is_verified,
-                created_at=saved_user.created_at
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_type="bearer",
+                expires_in=3600
             )
             
             return response, None
             
         except Exception as e:
+            logger.error(f"Error in RegisterUserUseCase: {str(e)}", exc_info=True)
             return None, str(e)

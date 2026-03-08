@@ -15,22 +15,31 @@ class ITokenService(ABC):
         """Crear refresh token JWT"""
         pass
     
-    @abstractmethod
-    def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Verificar y decodificar token"""
-        pass
+    # @abstractmethod
+    # def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
+    #     """Verificar y decodificar token"""
+    #     pass
     
-    @abstractmethod
-    def decode_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Decodificar token sin verificar"""
-        pass
+    # @abstractmethod
+    # def decode_token(self, token: str) -> Optional[Dict[str, Any]]:
+    #     """Decodificar token sin verificar"""
+    #     pass
     
-    @abstractmethod
-    def is_token_expired(self, token: str) -> bool:
-        """Verificar si token está expirado"""
-        pass
+    # @abstractmethod
+    # def is_token_expired(self, token: str) -> bool:
+    #     """Verificar si token está expirado"""
+    #     pass
     
-    @abstractmethod
-    def get_token_expiry(self, token: str) -> Optional[datetime]:
-        """Obtener fecha de expiración del token"""
-        pass
+    # @abstractmethod
+    # def get_token_expiry(self, token: str) -> Optional[datetime]:
+    #     """Obtener fecha de expiración del token"""
+    #     pass
+
+    # Alias para compatibilidad
+    def generate_access_token(self, user_id: str, email: str) -> str:
+        """Alias para create_access_token"""
+        return self.create_access_token(user_id, email)
+    
+    def generate_refresh_token(self, user_id: str, email: str) -> str:
+        """Alias para create_refresh_token"""
+        return self.create_refresh_token(user_id, email)

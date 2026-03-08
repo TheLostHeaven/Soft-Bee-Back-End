@@ -1,13 +1,10 @@
 from dotenv import load_dotenv
 import os
 
-# Cargar el archivo .env principal primero
 load_dotenv()
 
-# Obtener el entorno después de cargar .env
 environment = os.getenv('FLASK_ENV', 'local')
 
-# Intentar cargar archivo específico del entorno si existe
 env_file = f'.env.{environment}'
 if os.path.exists(env_file):
     load_dotenv(env_file, override=True)
@@ -15,12 +12,7 @@ if os.path.exists(env_file):
 DATABASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    """Configuración base para todos los entornos"""
-    
-    # Configuración general
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-    
-    # Configuración de correo
     MAIL_SERVER = os.getenv("SMTP_HOST", "smtp.gmail.com")
     MAIL_PORT = int(os.getenv("SMTP_PORT", 587))
     MAIL_USERNAME = os.getenv("SMTP_USER")
@@ -28,13 +20,39 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_DEFAULT_SENDER = os.getenv("SMTP_USER")
 
-    # Configuración de JWT
-    JWT_SECRET_KEY = os.getenv("JWT_KEY", "secret-key-default")
-    JWT_ALGORITHM = os.getenv("ALGORITHM", "HS256")
+    EMAIL = {
+        "smtp_host": MAIL_SERVER,
+        "smtp_port": MAIL_PORT,
+        "smtp_user": MAIL_USERNAME,
+        "smtp_password": MAIL_PASSWORD,
+        "from_email": MAIL_DEFAULT_SENDER
+    }
+
+    AUTH = {
+        "password_algorithm": "argon2",
+        "jwt_secret_key": os.getenv("JWT_KEY", "secret-key-default"),
+        "jwt_algorithm": os.getenv("ALGORITHM", "HS256"),
+        "jwt_issuer": os.getenv("JWT_ISSUER", "softbee-api"),
+        "jwt_audience": os.getenv("JWT_AUDIENCE", "softbee-app"),
+        "password_argon2_time_cost": int(os.getenv("ARGON2_TIME_COST", 2)),
+        "password_argon2_memory_cost": int(os.getenv("ARGON2_MEMORY_COST", 512000)),
+        "password_argon2_parallelism": int(os.getenv("ARGON2_PARALLELISM", 2)),
+        "password_argon2_hash_len": int(os.getenv("ARGON2_HASH_LEN", 32)),
+        "password_argon2_salt_len": int(os.getenv("ARGON2_SALT_LEN", 16)),
+    }
+
+    AI = {
+        "openai_api_key": os.getenv("OPENAI_API_KEY"),
+        "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY"),
+        "gemini_api_key": os.getenv("GEMINI_API_KEY"),
+        "deepseek_api_key": os.getenv("DEEPSEEK_API_KEY"),
+        "default_provider": os.getenv("DEFAULT_AI_PROVIDER", "mock")
+    }
+
+    JWT_SECRET_KEY = AUTH["jwt_secret_key"]
+    JWT_ALGORITHM = AUTH["jwt_algorithm"]  # <-- Esto ahora tiene valor
     JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_SESSION", 1440))  # 24 horas
     JWT_RESET_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_EMAIL", 30))  # 30 minutos
-    
-    # URLs base
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
     BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")
 
@@ -42,11 +60,7 @@ class LocalConfig(Config):
     """Configuración para entorno local"""
     DEBUG = True
     TESTING = False
-    
-    # Base de datos PostgreSQL local para desarrollo
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/softbee_local")
-    
-    # URLs para desarrollo local
+    DATABASE_URL = os.getenv("DATABASE_URL")
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
     BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")
 
@@ -54,25 +68,17 @@ class DevelopmentConfig(Config):
     """Configuración para entorno de desarrollo (servidor de desarrollo)"""
     DEBUG = True
     TESTING = False
-    
-    # Base de datos PostgreSQL de desarrollo
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/softbee_dev")
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
 class ProductionConfig(Config):
     """Configuración para entorno de producción"""
     DEBUG = False
     TESTING = False
-    
-    # Base de datos PostgreSQL de producción (debe venir de variable de entorno)
     DATABASE_URL = os.getenv("DATABASE_URL")
-    
-    # Validar que existan las variables críticas en producción
     if not DATABASE_URL:
         raise ValueError("DATABASE_URL es requerida en producción")
-    
     if not os.getenv("JWT_KEY"):
         raise ValueError("JWT_KEY es requerida en producción")
-    
     if not os.getenv("SECRET_KEY"):
         raise ValueError("SECRET_KEY es requerida en producción")
 
@@ -80,14 +86,9 @@ class TestingConfig(Config):
     """Configuración para pruebas"""
     DEBUG = True
     TESTING = True
-    
-    # Base de datos PostgreSQL para tests
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/softbee_test")
-    
-    # Desactivar protecciones para facilitar testing
+    DATABASE_URL = os.getenv("DATABASE_URL")
     WTF_CSRF_ENABLED = False
 
-# Diccionario de configuraciones disponibles
 config = {
     'local': LocalConfig,
     'development': DevelopmentConfig,

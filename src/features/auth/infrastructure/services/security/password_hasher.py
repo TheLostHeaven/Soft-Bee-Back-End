@@ -1,83 +1,79 @@
-import bcrypt
-from argon2 import PasswordHasher as Argon2Hasher
-from argon2.exceptions import VerifyMismatchError, InvalidHashError
-from typing import Tuple
-import os
+import argon2
+import logging
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 class PasswordHasher:
-    """Servicio para hashing y verificación de passwords"""
+    """Servicio para hash y verificación de contraseñas usando Argon2"""
     
-    def __init__(self, algorithm: str = "argon2"):
-        self.algorithm = algorithm
-        if algorithm == "argon2":
-            self.argon2_hasher = Argon2Hasher(
-                time_cost=2,
-                memory_cost=102400,
-                parallelism=8,
-                hash_len=32,
-                salt_len=16
-            )
-    
-    def hash(self, password: str) -> Tuple[str, str]:
+    def __init__(self, time_cost=2, memory_cost=512000, parallelism=2, 
+                hash_len=32, salt_len=16):
         """
-        Hash de password
-        
-        Returns:
-            Tuple[str, str]: (hashed_password, algorithm_used)
-        """
-        if self.algorithm == "bcrypt":
-            salt = bcrypt.gensalt()
-            hashed = bcrypt.hashpw(password.encode(), salt)
-            return hashed.decode(), "bcrypt"
-        
-        elif self.algorithm == "argon2":
-            hashed = self.argon2_hasher.hash(password)
-            return hashed, "argon2"
-        
-        else:
-            raise ValueError(f"Unsupported algorithm: {self.algorithm}")
-    
-    def verify(self, password: str, hashed_password: str) -> bool:
-        """
-        Verificar password contra hash
+        Inicializa el hasher de contraseñas con Argon2
         
         Args:
-            password: Password en texto plano
-            hashed_password: Hash almacenado
-            
-        Returns:
-            bool: True si el password es válido
+            time_cost: Número de iteraciones (mayor = más seguro pero más lento)
+            memory_cost: Memoria en KB a usar
+            parallelism: Número de hilos paralelos
+            hash_len: Longitud del hash en bytes
+            salt_len: Longitud de la sal en bytes
         """
-        # Detectar algoritmo por el formato del hash
-        if hashed_password.startswith("$2b$") or hashed_password.startswith("$2a$"):
-            # bcrypt
-            try:
-                return bcrypt.checkpw(password.encode(), hashed_password.encode())
-            except ValueError:
-                return False
+        self.time_cost = time_cost
+        self.memory_cost = memory_cost
+        self.parallelism = parallelism
+        self.hash_len = hash_len
+        self.salt_len = salt_len
         
-        elif hashed_password.startswith("$argon2"):
-            # argon2
-            try:
-                self.argon2_hasher.verify(hashed_password, password)
-                return True
-            except (VerifyMismatchError, InvalidHashError):
-                return False
+        self.hasher = argon2.PasswordHasher(
+            time_cost=time_cost,
+            memory_cost=memory_cost,
+            parallelism=parallelism,
+            hash_len=hash_len,
+            salt_len=salt_len
+        )
         
-        else:
-            # Hash desconocido
+        logger.info(f"PasswordHasher initialized with Argon2 - "
+                f"time_cost: {time_cost}, memory_cost: {memory_cost}KB")
+    
+    def hash_password(self, password: str) -> str:
+        """Genera hash de una contraseña usando Argon2"""
+        try:
+            start_time = datetime.now()
+            hashed = self.hasher.hash(password)
+            elapsed = (datetime.now() - start_time).total_seconds()
+            
+            logger.debug(f"Password hashed in {elapsed:.3f}s")
+            return hashed
+            
+        except Exception as e:
+            logger.error(f"Error hashing password: {str(e)}")
+            raise
+    
+    def verify_password(self, password: str, hashed_password: str) -> bool:
+        """Verifica si una contraseña coincide con el hash almacenado"""
+        try:
+            start_time = datetime.now()
+            is_valid = self.hasher.verify(hashed_password, password)
+            elapsed = (datetime.now() - start_time).total_seconds()
+            
+            logger.debug(f"Password verified in {elapsed:.3f}s")
+            return is_valid
+            
+        except argon2.exceptions.VerifyMismatchError:
+            logger.warning("Password verification failed - mismatch")
+            return False
+        except argon2.exceptions.VerificationError as e:
+            logger.error(f"Password verification error: {str(e)}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error verifying password: {str(e)}")
             return False
     
     def needs_rehash(self, hashed_password: str) -> bool:
-        """
-        Verificar si necesita re-hash (para migración de algoritmos)
-        """
-        if self.algorithm == "argon2":
-            return self.argon2_hasher.check_needs_rehash(hashed_password)
-        
-        # Para bcrypt, siempre retornar False (no tiene método de verificación)
-        return False
-    
-    def generate_salt(self) -> str:
-        """Generar sal aleatoria"""
-        return os.urandom(16).hex()
+        """Verifica si un hash necesita ser rehasheado (si los parámetros cambiaron)"""
+        try:
+            return self.hasher.check_needs_rehash(hashed_password)
+        except Exception as e:
+            logger.error(f"Error checking if password needs rehash: {str(e)}")
+            return False

@@ -1,0 +1,27 @@
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+from uuid import UUID
+
+class ApiaryDto(BaseModel):
+    id: UUID
+    user_id: str
+    name: str
+    location: Optional[str]
+    beehives_count: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class CreateApiaryDto(BaseModel):
+    user_id: str
+    name: str
+    location: Optional[str] = None
+    beehives_count: int = 0
+
+class UpdateApiaryDto(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+    beehives_count: Optional[int] = None

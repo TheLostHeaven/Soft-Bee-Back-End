@@ -1,149 +1,180 @@
 from flask import Blueprint, request, jsonify, current_app
 from dependency_injector.wiring import inject, Provide
-from .....application.dto.auth_dto import (
+from pydantic import ValidationError
+
+# Importar DTOs existentes
+from src.features.auth.application.dto.auth_dto import (
     LoginRequestDTO, RegisterRequestDTO, RefreshTokenRequestDTO,
-    LogoutRequestDTO, VerifyTokenRequestDTO
-)
-from .....application.use_cases.login_user import LoginUserUseCase
-from .....application.use_cases.register_user import RegisterUserUseCase
-# from .....application.use_cases.refresh_token import RefreshTokenUseCase
-# from .....application.use_cases.logout_user import LogoutUserUseCase
-# from .....application.use_cases.verify_token import VerifyTokenUseCase
-from src.core.dependencies.containers import MainContainer as Container
-from ..schemas.auth_schemas import (
-    LoginSchema, RegisterSchema, RefreshTokenSchema,
-    LogoutSchema, VerifyTokenSchema, AuthResponseSchema
+    LogoutRequestDTO, VerifyTokenRequestDTO, RegisterResponseDTO
 )
 
-# Crear blueprint para auth v1
+# Importar DTOs para reset password
+from src.features.auth.application.dto.reset_password_dto import (
+    ResetPasswordConfirmDTO,
+    ForgotPasswordRequestDTO
+)
+
+# Importar casos de uso existentes
+from src.features.auth.application.use_cases.login_user import LoginUserUseCase
+from src.features.auth.application.use_cases.register_user import RegisterUserUseCase
+# from src.features.auth.application.use_cases.refresh_token import RefreshTokenUseCase
+# from src.features.auth.application.use_cases.logout_user import LogoutUserUseCase
+# from src.features.auth.application.use_cases.verify_token import VerifyTokenUseCase
+
+# Importar nuevos casos de uso para reset password
+from src.features.auth.application.use_cases.forgot_password import ForgotPasswordUseCase
+from src.features.auth.application.use_cases.reset_password import ResetPasswordUseCase
+
+# Importar container DI
+from src.core.dependencies.containers import MainContainer
+
+# Importar schemas existentes
+from src.features.auth.presentation.api.v1.schemas.auth_schemas import (
+    LoginSchema, RegisterSchema, AuthResponseSchema
+)
+
+# Importar schemas para reset password
+from src.features.auth.presentation.api.v1.schemas.auth_schemas import (
+    ForgotPasswordSchema,
+    ResetPasswordSchema,
+    ResetPasswordResponseSchema,
+)
+
 auth_bp = Blueprint('auth_v1', __name__, url_prefix='/api/v1/auth')
 
 @auth_bp.route('/login', methods=['POST'])
 @inject
 def login(
-    login_use_case: LoginUserUseCase = Provide[Container.auth.login_use_case]
+    login_use_case: LoginUserUseCase = Provide[MainContainer.login_use_case]  # <-- Añadir DI
 ):
-    """Login de usuario"""
-    # Validar input
-    schema = LoginSchema()
     try:
-        data = schema.load(request.json)
+        schema = LoginSchema(**request.json)
+        login_dto = LoginRequestDTO(
+            email=schema.email,
+            password=schema.password
+        )
+        result, error = login_use_case.execute(login_dto)
+        if error:
+            return {"error": error}, 401
+        if isinstance(result, dict):
+            return jsonify(result), 200
+        elif hasattr(result, '__dict__'):
+            return jsonify(result.__dict__), 200
+        else:
+            return jsonify({"result": str(result)}), 200
+            
+    except ValidationError as e:
+        return jsonify({"errors": e.errors()}), 400
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    
-    # Convertir a DTO
-    login_request = LoginRequestDTO(**data)
-    
-    # Ejecutar caso de uso
-    result, error = login_use_case.execute(login_request)
-    
-    if error:
-        return jsonify({"error": error}), 401
-    
-    # Serializar respuesta
-    response_schema = AuthResponseSchema()
-    return jsonify(response_schema.dump(result)), 200
+        print(f"Login endpoint error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error"}), 500
 
 @auth_bp.route('/register', methods=['POST'])
 @inject
 def register(
-    register_use_case: RegisterUserUseCase = Provide[Container.auth.register_use_case]
+    register_use_case: RegisterUserUseCase = Provide[MainContainer.register_use_case]
 ):
-    """Registro de usuario"""
-    schema = RegisterSchema()
+    """Endpoint para registro de usuarios"""
     try:
-        data = schema.load(request.json)
+        validated_data = RegisterSchema(**request.json)
+        data_for_dto = validated_data.model_dump()
+    except ValidationError as e:
+        return jsonify({"errors": e.errors()}), 400
+    
+    try:
+        register_request = RegisterRequestDTO(**data_for_dto)
+        result, error = register_use_case.execute(register_request)
+        
+        if error:
+            return jsonify({"error": error}), 400
+        
+        if result is None:
+            return jsonify({"error": "Registration failed - no result"}), 400
+        
+        if isinstance(result, str):
+            current_app.logger.error(f"String result instead of DTO: {result}")
+            return jsonify({"error": "Internal server error"}), 500
+        
+        try:
+            if hasattr(result, 'model_dump'):
+                return jsonify(result.model_dump()), 201
+            elif hasattr(result, '__dict__'):
+                return jsonify(result.__dict__), 201
+            else:
+                return jsonify({"success": True, "user_id": getattr(result, 'user_id', 'unknown')}), 201
+        except Exception as e:
+            current_app.logger.error(f"Error serializing result: {str(e)}")
+            return jsonify({"error": "Registration successful but response serialization failed"}), 201
+            
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    
-    register_request = RegisterRequestDTO(**data)
-    
-    result, error = register_use_case.execute(register_request)
-    
-    if error:
-        return jsonify({"error": error}), 400
-    
-    return jsonify({
-        "id": result.id,
-        "email": result.email,
-        "username": result.username,
-        "is_verified": result.is_verified,
-        "created_at": result.created_at.isoformat(),
-        "message": result.message
-    }), 201
+        current_app.logger.error(f"Register endpoint error: {str(e)}", exc_info=True)
+        return jsonify({"error": "Internal server error"}), 500
 
-# @auth_bp.route('/refresh', methods=['POST'])
-# @inject
-# def refresh_token(
-#     refresh_use_case: RefreshTokenUseCase = Provide[Container.auth.refresh_token_use_case]
-# ):
-#     """Refresh token"""
-#     schema = RefreshTokenSchema()
-#     try:
-#         data = schema.load(request.json)
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 400
-    
-#     refresh_request = RefreshTokenRequestDTO(**data)
-    
-#     result, error = refresh_use_case.execute(refresh_request)
-    
-#     if error:
-#         return jsonify({"error": error}), 401
-    
-#     return jsonify({
-#         "access_token": result.access_token,
-#         "refresh_token": result.refresh_token,
-#         "token_type": result.token_type,
-#         "expires_in": result.expires_in
-#     }), 200
+@auth_bp.route('/forgot-password', methods=['POST'])
+@inject
+def forgot_password(
+    forgot_password_use_case: ForgotPasswordUseCase = Provide[MainContainer.forgot_password_use_case]
+):
+    """Solicitar reseteo de contraseña"""
+    try:
 
-# @auth_bp.route('/logout', methods=['POST'])
-# @inject
-# def logout(
-#     logout_use_case: LogoutUserUseCase = Provide[Container.auth.logout_use_case]
-# ):
-#     """Logout de usuario"""
-#     schema = LogoutSchema()
-#     try:
-#         data = schema.load(request.json)
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 400
-    
-#     logout_request = LogoutRequestDTO(**data)
-    
-#     success, error = logout_use_case.execute(logout_request)
-    
-#     if error:
-#         return jsonify({"error": error}), 400
-    
-#     return jsonify({"message": "Logged out successfully"}), 200
+        validated_data = ForgotPasswordSchema(**request.json)
+        data = validated_data.model_dump()
 
-# @auth_bp.route('/verify', methods=['POST'])
-# @inject
-# def verify_token(
-#     verify_use_case: VerifyTokenUseCase = Provide[Container.auth.verify_token_use_case]
-# ):
-#     """Verificar token"""
-#     schema = VerifyTokenSchema()
-#     try:
-#         data = schema.load(request.json)
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 400
-    
-#     verify_request = VerifyTokenRequestDTO(**data)
-    
-#     result, error = verify_use_case.execute(verify_request)
-    
-#     if error:
-#         return jsonify({"error": error}), 401
-    
-#     return jsonify({
-#         "is_valid": result.is_valid,
-#         "user_id": result.user_id,
-#         "email": result.email,
-#         "expires_at": result.expires_at.isoformat() if result.expires_at else None
-#     }), 200
+        request_dto = ForgotPasswordRequestDTO(email=data['email'])
+
+        result = forgot_password_use_case.execute(request_dto)
+
+        return jsonify({
+            'success': result.success,
+            'message': result.message,
+            'user_id': result.user_id
+        }), 200 if result.success else 400
+        
+    except ValidationError as e:
+        return jsonify({"errors": e.errors()}), 400
+    except Exception as e:
+        current_app.logger.error(f"Forgot password error: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while processing your request'
+        }), 500
+
+@auth_bp.route('/reset-password', methods=['POST'])
+@inject
+def reset_password(
+    reset_password_use_case: ResetPasswordUseCase = Provide[MainContainer.reset_password_use_case]
+):
+    """Confirmar reseteo de contraseña"""
+    try:
+        validated_data = ResetPasswordSchema(**request.json)
+        data = validated_data.model_dump()
+
+        request_dto = ResetPasswordConfirmDTO(
+            token=data['token'],
+            new_password=data['new_password']
+        )
+        
+        result = reset_password_use_case.execute(request_dto)
+        
+        return jsonify({
+            'success': result.success,
+            'message': result.message,
+            'user_id': result.user_id,
+            'email': result.email
+        }), 200 if result.success else 400
+        
+    except ValidationError as e:
+        return jsonify({"errors": e.errors()}), 400
+    except Exception as e:
+        current_app.logger.error(f"Reset password error: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while resetting your password'
+        }), 500
+
 
 @auth_bp.route('/health', methods=['GET'])
 def auth_health():
@@ -155,9 +186,10 @@ def auth_health():
         "endpoints": [
             "/api/v1/auth/login",
             "/api/v1/auth/register",
-            # "/api/v1/auth/refresh",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/reset-password",
+            "/api/v1/auth/refresh",
             "/api/v1/auth/logout",
             "/api/v1/auth/verify"
         ]
     })
-

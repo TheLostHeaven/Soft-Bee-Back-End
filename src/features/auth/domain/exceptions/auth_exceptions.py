@@ -51,3 +51,16 @@ class EmailAlreadyExistsException(AuthException):
     """Email ya registrado"""
     def __init__(self, message: str = "Email already exists"):
         super().__init__(message, "EMAIL_EXISTS")
+
+
+class InvalidResetTokenException(AuthException):
+    """Excepción cuando el token de reseteo es inválido o ha expirado"""
+    pass
+
+class PasswordResetException(AuthException):
+    """Excepción cuando hay un error en el proceso de reseteo de contraseña"""
+    pass
+
+class PasswordValidationException(AuthException):
+    """Excepción cuando la contraseña no cumple los requisitos"""
+    pass    
