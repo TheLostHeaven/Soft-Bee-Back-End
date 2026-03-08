@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from uuid import UUID
 from src.features.questions.application.interfaces.repositories.question_repository import QuestionRepository
 from src.features.questions.domain.entities.question import ApiaryQuestion, HiveQuestion
@@ -24,12 +24,17 @@ class SQLAlchemyQuestionRepository(QuestionRepository):
         return [QuestionMapper.apiary_to_entity(m) for m in models]
 
     def get_apiary_questions_by_apiary_id(self, apiary_id: UUID) -> List[ApiaryQuestion]:
-        models = self.db_session.query(ApiaryQuestionModel).filter_by(apiary_id=apiary_id).order_by(ApiaryQuestionModel.display_order).all()
+        models = self.db_session.query(ApiaryQuestionModel)\
+            .filter_by(apiary_id=apiary_id)\
+            .order_by(ApiaryQuestionModel.display_order)\
+            .all()
         return [QuestionMapper.apiary_to_entity(m) for m in models]
 
     def get_apiary_question_by_id(self, apiary_question_id: UUID) -> Optional[ApiaryQuestion]:
-        model = self.db_session.query(ApiaryQuestionModel).filter_by(id=apiary_question_id).first()
-        return QuestionMapper.apiary_to_entity(model)
+        model = self.db_session.query(ApiaryQuestionModel)\
+            .filter_by(id=apiary_question_id)\
+            .first()
+        return QuestionMapper.apiary_to_entity(model) if model else None
 
     def update_apiary_question(self, question: ApiaryQuestion) -> ApiaryQuestion:
         model = self.db_session.query(ApiaryQuestionModel).filter_by(id=question.id).first()
@@ -63,12 +68,19 @@ class SQLAlchemyQuestionRepository(QuestionRepository):
         return [QuestionMapper.hive_to_entity(m) for m in models]
 
     def get_hive_questions_by_hive_id(self, hive_id: UUID) -> List[HiveQuestion]:
-        models = self.db_session.query(HiveQuestionModel).filter_by(hive_id=hive_id).order_by(HiveQuestionModel.display_order).all()
+        models = self.db_session.query(HiveQuestionModel)\
+            .options(joinedload(HiveQuestionModel.apiary_question))\
+            .filter_by(hive_id=hive_id)\
+            .order_by(HiveQuestionModel.display_order)\
+            .all()
         return [QuestionMapper.hive_to_entity(m) for m in models]
 
     def get_hive_question_by_id(self, hive_question_id: UUID) -> Optional[HiveQuestion]:
-        model = self.db_session.query(HiveQuestionModel).filter_by(id=hive_question_id).first()
-        return QuestionMapper.hive_to_entity(model)
+        model = self.db_session.query(HiveQuestionModel)\
+            .options(joinedload(HiveQuestionModel.apiary_question))\
+            .filter_by(id=hive_question_id)\
+            .first()
+        return QuestionMapper.hive_to_entity(model) if model else None
 
     def update_hive_question(self, question: HiveQuestion) -> HiveQuestion:
         model = self.db_session.query(HiveQuestionModel).filter_by(id=question.id).first()

@@ -9,10 +9,11 @@ from src.features.questions.presentation.api.v1.schemas.question_schemas import 
 )
 from src.features.questions.application.dto.question_dto import UpdateHiveQuestionDto
 
-# --- APIARY QUESTIONS (El Banco de Preguntas Master) ---
+# --- APIARY QUESTIONS (El Banco de Preguntas por Apiario) ---
 
 @questions_bp.route("/apiary/<string:apiary_id>", methods=['GET'])
 def get_apiary_questions(apiary_id: str):
+    """Obtiene todas las preguntas del banco de un apiario específico"""
     try:
         use_case = current_app.container.get_apiary_questions_use_case()
         questions = use_case.execute(UUID(apiary_id))
@@ -40,7 +41,7 @@ def create_apiary_question():
 
 @questions_bp.route("/apiary/<string:id>", methods=['PATCH'])
 def update_apiary_question(id: str):
-    """Actualiza una pregunta maestra usando su UUID"""
+    """Actualiza una pregunta del banco del apiario usando su UUID"""
     try:
         data = request.json
         use_case = current_app.container.update_apiary_question_use_case()
@@ -76,6 +77,7 @@ def assign_question_to_hive():
 
 @questions_bp.route("/hive/<string:hive_id>", methods=['GET'])
 def get_hive_questions(hive_id: str):
+    """Obtiene todas las preguntas de una colmena con los detalles completos del apiario"""
     try:
         use_case = current_app.container.get_hive_questions_use_case()
         questions = use_case.execute(UUID(hive_id))

@@ -6,7 +6,7 @@ import uuid
 from src.core.database.db import Base
 
 class ApiaryQuestionModel(Base):
-    """SQLAlchemy model for apiary-specific questions"""
+    """SQLAlchemy model for apiary-specific questions (banco de preguntas por apiario)"""
     __tablename__ = "apiary_questions"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -34,7 +34,7 @@ class ApiaryQuestionModel(Base):
         return f"<ApiaryQuestion(id={self.id}, question_id={self.question_id})>"
 
 class HiveQuestionModel(Base):
-    """SQLAlchemy model for hive-specific questions"""
+    """SQLAlchemy model for hive-specific questions (referencia a preguntas del apiario)"""
     __tablename__ = "hive_questions"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
