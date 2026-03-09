@@ -57,9 +57,10 @@ docker-compose*.yml
 *.md
 !README.md
 
-# Scripts (excluir todos excepto docker-entrypoint.sh)
+# Scripts (excluir todos excepto los necesarios para Docker/Render)
 *.sh
 !docker-entrypoint.sh
+!render-build.sh
 
 # Otros
 .DS_Store

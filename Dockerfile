@@ -31,12 +31,8 @@ COPY . .
 # Crear directorio para logs
 RUN mkdir -p logs
 
-# Copiar y dar permisos al script de entrada
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-
 # Exponer el puerto
 EXPOSE 5000
 
-# Usar el script de entrada
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Comando directo sin entrypoint
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "index:app"]
