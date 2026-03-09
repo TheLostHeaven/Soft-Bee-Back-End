@@ -52,7 +52,8 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
                             "src.features.inventory.presentation.api.v1.endpoints.inventory_endpoints",
                             "src.features.ai_agent.presentation.api.v1.endpoints.ai_agent",
                             "src.features.treatments.presentation.api.v1.endpoints.routes",
-                            "src.features.questions.presentation.api.v1.endpoints.routes"])
+                            "src.features.questions.presentation.api.v1.endpoints.routes",
+                            "src.features.answer.presentation.api.v1.endpoints.routes"])
     app.container = container
 
     # Inicializar base de datos y migraciones
@@ -60,7 +61,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
 
     # from src.routes.health import create_health_routes
     # from src.routes.auth import create_auth_routes
-    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'ai_agent', 'treatments', 'questions']
+    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'ai_agent', 'treatments', 'questions', 'answer']
     registered_features = register_features(app, features_to_register)
 
     print("\n" + "="*50)
@@ -85,15 +86,5 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
                 print(f"  {methods.ljust(15)} {rule.rule}")
     
     print("\n" + "="*50)
-
-    # mail = Mail(app)
-    # email_service = EmailService(mail)
-
-    # with app.app_context():
-        # auth_bp = create_auth_routes(get_db_func=get_db, email_service=email_service)
-    #     app.register_blueprint(auth_bp, url_prefix='/api')
-
-    # app.register_blueprint(create_health_routes(), url_prefix='/api')
-
 
     return app

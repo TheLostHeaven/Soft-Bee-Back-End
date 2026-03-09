@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: softbee_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-postgres}
+      POSTGRES_DB: ${PGDATABASE:-softbee}
+    ports:
+      - "${PGPORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - softbee_network
+
+  # Aplicación Flask
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: softbee_web
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5000}:5000"
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - DATABASE_URL=postgresql://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@db:5432/${PGDATABASE:-softbee}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_KEY=${JWT_KEY}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - EXPIRES_TOKEN_SESSION=${EXPIRES_TOKEN_SESSION:-1440}
+      - EXPIRES_TOKEN_EMAIL=${EXPIRES_TOKEN_EMAIL:-30}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - BASE_URL=${BASE_URL:-http://localhost:5000}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - DEFAULT_AI_PROVIDER=${DEFAULT_AI_PROVIDER:-mock}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - softbee_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  softbee_network:
+    driver: bridge

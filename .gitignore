@@ -23,6 +23,7 @@ database.db
 *.pyc
 
 instance/
+md/
 
 ### Flask ###
 instance/*
