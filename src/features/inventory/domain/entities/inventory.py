@@ -9,6 +9,7 @@ class Inventory:
     id: UUID
     apiary_id: UUID
     name: str
+    category: str
     quantity: int
     unit: str
     description: Optional[str]

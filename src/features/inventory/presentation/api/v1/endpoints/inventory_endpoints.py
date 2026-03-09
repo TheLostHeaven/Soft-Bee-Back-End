@@ -62,17 +62,57 @@ def get_inventories(
     return jsonify([dto.dict() for dto in dtos]), 200
 
 
-@inventory_bp.route("/", methods=["POST"])
+@inventory_bp.route("/", methods=["POST", "OPTIONS"])
 @inject
 def create_inventory(
     create_inventory_use_case: CreateInventoryUseCase = Provide[
         MainContainer.inventory_container.create_inventory_use_case
     ],
 ):
+    if request.method == "OPTIONS":
+        return "", 204
     data = request.get_json()
     dto = CreateInventoryDTO(**data)
     inventory = create_inventory_use_case.execute(dto)
     return jsonify(InventoryMapper.to_dto(inventory).dict()), 201
+
+
+@inventory_bp.route("/movement", methods=["POST", "OPTIONS"])
+@inject
+def record_movement(
+    adjust_use_case: AdjustInventoryUseCase = Provide[
+        MainContainer.inventory_container.adjust_inventory_use_case
+    ],
+):
+    """Endpoint para registrar movimientos (entrada/salida)"""
+    if request.method == "OPTIONS":
+        return "", 204
+    try:
+        data = request.get_json()
+        # El frontend envía 'inventory_id', 'movement_type', 'quantity'
+        inv_id = UUID(data.get('inventory_id'))
+        qty = int(data.get('quantity'))
+        mov_type = data.get('movement_type')
+        
+        # Si es salida, la cantidad debe ser negativa para el ajuste
+        adjustment = qty if mov_type == 'entry' else -qty
+        
+        dto = AdjustInventoryDTO(adjustment_amount=adjustment)
+        inventory = adjust_use_case.execute(inv_id, dto)
+        
+        return jsonify(InventoryMapper.to_dto(inventory).dict()), 201
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
+
+
+@inventory_bp.route("/<uuid:inventory_id>/movements", methods=["GET", "OPTIONS"])
+@inject
+def get_movements(inventory_id: UUID):
+    """Endpoint para obtener historial (simulado por ahora si no hay tabla de logs)"""
+    if request.method == "OPTIONS":
+        return "", 204
+    # Por ahora devolvemos una lista vacía para evitar el 404/CORS error
+    return jsonify([]), 200
 
 
 @inventory_bp.route("/<uuid:inventory_id>", methods=["PUT"])

@@ -14,6 +14,7 @@ class CreateInventoryUseCase:
             id=None,
             apiary_id=dto.apiary_id,
             name=dto.name,
+            category=dto.category,
             quantity=dto.quantity,
             unit=dto.unit,
             description=dto.description,
