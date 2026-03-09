@@ -21,8 +21,9 @@ def get_apiary_questions(apiary_id: str):
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
-@questions_bp.route("/apiary", methods=['POST'])
+@questions_bp.route("/apiary", methods=['POST', 'OPTIONS'])
 def create_apiary_question():
+    if request.method == 'OPTIONS': return '', 204
     try:
         data = request.json
         schema = CreateApiaryQuestionRequestSchema(**data)
@@ -39,8 +40,14 @@ def create_apiary_question():
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
-@questions_bp.route("/apiary/<string:id>", methods=['PATCH'])
+# Alias para POST /api/v1/questions (compatibilidad frontend)
+@questions_bp.route("", methods=['POST', 'OPTIONS'])
+def create_question_alias():
+    return create_apiary_question()
+
+@questions_bp.route("/apiary/<string:id>", methods=['PATCH', 'OPTIONS'])
 def update_apiary_question(id: str):
+    if request.method == 'OPTIONS': return '', 204
     """Actualiza una pregunta del banco del apiario usando su UUID"""
     try:
         data = request.json
@@ -51,6 +58,66 @@ def update_apiary_question(id: str):
             return jsonify({"message": "Apiary question not found"}), HTTPStatus.NOT_FOUND
             
         return jsonify(ApiaryQuestionResponseSchema.model_validate(updated_question).model_dump()), HTTPStatus.OK
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+# Alias para PATCH /api/v1/questions/<id> (compatibilidad frontend)
+@questions_bp.route("/<string:id>", methods=['PATCH', 'PUT', 'OPTIONS'])
+def update_question_alias(id: str):
+    return update_apiary_question(id)
+
+@questions_bp.route("/apiary/<string:id>", methods=['DELETE', 'OPTIONS'])
+def delete_apiary_question(id: str):
+    if request.method == 'OPTIONS': return '', 204
+    try:
+        use_case = current_app.container.delete_apiary_question_use_case()
+        success = use_case.execute(UUID(id))
+        if not success:
+            return jsonify({"message": "Question not found"}), HTTPStatus.NOT_FOUND
+        return jsonify({}), HTTPStatus.NO_CONTENT
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+# Alias para DELETE /api/v1/questions/<id>
+@questions_bp.route("/<string:id>", methods=['DELETE', 'OPTIONS'])
+def delete_question_alias(id: str):
+    return delete_apiary_question(id)
+
+@questions_bp.route("/templates", methods=['GET'])
+def get_question_templates():
+    try:
+        use_case = current_app.container.get_default_questions_use_case()
+        templates = use_case.execute()
+        return jsonify(templates), HTTPStatus.OK
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+@questions_bp.route("/load_defaults/<string:apiary_id>", methods=['POST', 'OPTIONS'])
+def load_default_questions(apiary_id: str):
+    if request.method == 'OPTIONS': return '', 204
+    try:
+        use_case = current_app.container.initialize_apiary_questions_use_case()
+        use_case.execute(UUID(apiary_id))
+        return jsonify({"message": "Defaults loaded successfully"}), HTTPStatus.OK
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+@questions_bp.route("/apiary/<string:apiary_id>/reorder", methods=['PUT', 'OPTIONS'])
+def reorder_apiary_questions(apiary_id: str):
+    if request.method == 'OPTIONS': return '', 204
+    try:
+        data = request.json
+        order_ids = data.get('order', []) # Lista de UUIDs en el nuevo orden
+        
+        # Implementación simple de reordenamiento: actualizar display_order secuencialmente
+        repo = current_app.container.question_repository()
+        for idx, q_id in enumerate(order_ids):
+            q = repo.get_apiary_question_by_id(UUID(q_id))
+            if q:
+                q.display_order = idx + 1
+                repo.update_apiary_question(q)
+                
+        return jsonify({"message": "Reordered successfully"}), HTTPStatus.OK
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 

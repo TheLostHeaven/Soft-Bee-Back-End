@@ -53,6 +53,8 @@ from src.features.questions.application.use_cases.assign_question_to_hive import
 from src.features.questions.application.use_cases.create_apiary_question import CreateApiaryQuestion
 from src.features.questions.application.use_cases.get_apiary_questions import GetApiaryQuestions
 from src.features.questions.application.use_cases.update_apiary_question import UpdateApiaryQuestion
+from src.features.questions.application.use_cases.delete_apiary_question import DeleteApiaryQuestion
+from src.features.questions.application.use_cases.get_default_questions import GetDefaultQuestions
 
 from src.features.answer.infrastructure.repositories.sqlalchemy_answer_repository import SQLAlchemyAnswerRepository
 from src.features.answer.application.use_cases.create_answer import CreateAnswer
@@ -204,6 +206,15 @@ class MainContainer(containers.DeclarativeContainer):
     update_apiary_question_use_case = providers.Factory(
         UpdateApiaryQuestion,
         question_repository=question_repository
+    )
+
+    delete_apiary_question_use_case = providers.Factory(
+        DeleteApiaryQuestion,
+        question_repository=question_repository
+    )
+
+    get_default_questions_use_case = providers.Factory(
+        GetDefaultQuestions
     )
 
     # Answer repository and use cases
