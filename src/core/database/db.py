@@ -91,6 +91,7 @@ def init_app(app):
                 from src.features.auth.infrastructure.models.user_model import UserModel
                 from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
                 from src.features.questions.infrastructure.models.question_models import ApiaryQuestionModel
+                from src.features.answer.infrastructure.models.answer_models import HiveAnswerModel
                 
                 db.create_all()
                 print("✅ Tablas de base de datos inicializadas correctamente")

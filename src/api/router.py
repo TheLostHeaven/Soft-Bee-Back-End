@@ -29,6 +29,7 @@ class FeatureRouter:
                 'inventory_bp', # Added inventory_bp
                 'ai_agent_bp',
                 'questions_bp',
+                'answers_bp', # Added answers_bp
                 'bp',
             ]
             

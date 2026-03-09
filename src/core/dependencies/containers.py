@@ -54,6 +54,15 @@ from src.features.questions.application.use_cases.create_apiary_question import 
 from src.features.questions.application.use_cases.get_apiary_questions import GetApiaryQuestions
 from src.features.questions.application.use_cases.update_apiary_question import UpdateApiaryQuestion
 
+from src.features.answer.infrastructure.repositories.sqlalchemy_answer_repository import SQLAlchemyAnswerRepository
+from src.features.answer.application.use_cases.create_answer import CreateAnswer
+from src.features.answer.application.use_cases.create_answers_batch import CreateAnswersBatch
+from src.features.answer.application.use_cases.get_answer_by_id import GetAnswerById
+from src.features.answer.application.use_cases.get_answers_by_hive import GetAnswersByHive
+from src.features.answer.application.use_cases.get_answer_history import GetAnswerHistory
+from src.features.answer.application.use_cases.update_answer import UpdateAnswer
+from src.features.answer.application.use_cases.delete_answer import DeleteAnswer
+
 from src.features.ai_agent.infrastructure.services.ai_service_impl import MockAIServiceImpl
 from src.features.ai_agent.infrastructure.services.openai_service_impl import OpenAIServiceImpl
 from src.features.ai_agent.infrastructure.services.deepseek_service_impl import DeepSeekServiceImpl
@@ -195,6 +204,47 @@ class MainContainer(containers.DeclarativeContainer):
     update_apiary_question_use_case = providers.Factory(
         UpdateApiaryQuestion,
         question_repository=question_repository
+    )
+
+    # Answer repository and use cases
+    answer_repository = providers.Factory(
+        SQLAlchemyAnswerRepository,
+        db_session=db_session
+    )
+
+    create_answer_use_case = providers.Factory(
+        CreateAnswer,
+        answer_repository=answer_repository
+    )
+
+    create_answers_batch_use_case = providers.Factory(
+        CreateAnswersBatch,
+        answer_repository=answer_repository
+    )
+
+    get_answer_by_id_use_case = providers.Factory(
+        GetAnswerById,
+        answer_repository=answer_repository
+    )
+
+    get_answers_by_hive_use_case = providers.Factory(
+        GetAnswersByHive,
+        answer_repository=answer_repository
+    )
+
+    get_answer_history_use_case = providers.Factory(
+        GetAnswerHistory,
+        answer_repository=answer_repository
+    )
+
+    update_answer_use_case = providers.Factory(
+        UpdateAnswer,
+        answer_repository=answer_repository
+    )
+
+    delete_answer_use_case = providers.Factory(
+        DeleteAnswer,
+        answer_repository=answer_repository
     )
 
     create_apiary_use_case = providers.Factory(
