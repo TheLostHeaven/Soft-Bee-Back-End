@@ -1,12 +1,11 @@
 from flask import Blueprint
 
-answer_bp = Blueprint(
-    'answer',
+answers_bp = Blueprint(
+    'answers',
     __name__,
-    url_prefix='/api/v1/answer'
+    url_prefix='/api/v1/answers'
 )
 
-# Importar rutas
 from . import routes
 
-__all__ = ['answer_bp']
+__all__ = ['answers_bp']
