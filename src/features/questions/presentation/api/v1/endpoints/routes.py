@@ -11,13 +11,16 @@ from src.features.questions.application.dto.question_dto import UpdateHiveQuesti
 
 # --- APIARY QUESTIONS (El Banco de Preguntas por Apiario) ---
 
-@questions_bp.route("/apiary/<string:apiary_id>", methods=['GET'])
+@questions_bp.route("/apiary/<string:apiary_id>", methods=['GET', 'OPTIONS'])
 def get_apiary_questions(apiary_id: str):
+    if request.method == 'OPTIONS': return '', 204
     """Obtiene todas las preguntas del banco de un apiario específico"""
     try:
         use_case = current_app.container.get_apiary_questions_use_case()
         questions = use_case.execute(UUID(apiary_id))
-        return jsonify([ApiaryQuestionResponseSchema.model_validate(q).model_dump() for q in questions]), HTTPStatus.OK
+        return jsonify([ApiaryQuestionResponseSchema.model_validate(q).model_dump(mode='json') for q in questions]), HTTPStatus.OK
+    except ValueError:
+        return jsonify({"message": "Invalid Apiary ID format"}), HTTPStatus.BAD_REQUEST
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
@@ -34,7 +37,7 @@ def create_apiary_question():
             question_data=schema.model_dump(exclude_unset=True)
         )
 
-        return jsonify(ApiaryQuestionResponseSchema.model_validate(new_question).model_dump()), HTTPStatus.CREATED
+        return jsonify(ApiaryQuestionResponseSchema.model_validate(new_question).model_dump(mode='json')), HTTPStatus.CREATED
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except Exception as e:
@@ -57,7 +60,7 @@ def update_apiary_question(id: str):
         if not updated_question:
             return jsonify({"message": "Apiary question not found"}), HTTPStatus.NOT_FOUND
             
-        return jsonify(ApiaryQuestionResponseSchema.model_validate(updated_question).model_dump()), HTTPStatus.OK
+        return jsonify(ApiaryQuestionResponseSchema.model_validate(updated_question).model_dump(mode='json')), HTTPStatus.OK
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
@@ -83,8 +86,9 @@ def delete_apiary_question(id: str):
 def delete_question_alias(id: str):
     return delete_apiary_question(id)
 
-@questions_bp.route("/templates", methods=['GET'])
+@questions_bp.route("/templates", methods=['GET', 'OPTIONS'])
 def get_question_templates():
+    if request.method == 'OPTIONS': return '', 204
     try:
         use_case = current_app.container.get_default_questions_use_case()
         templates = use_case.execute()
@@ -107,9 +111,8 @@ def reorder_apiary_questions(apiary_id: str):
     if request.method == 'OPTIONS': return '', 204
     try:
         data = request.json
-        order_ids = data.get('order', []) # Lista de UUIDs en el nuevo orden
+        order_ids = data.get('order', [])
         
-        # Implementación simple de reordenamiento: actualizar display_order secuencialmente
         repo = current_app.container.question_repository()
         for idx, q_id in enumerate(order_ids):
             q = repo.get_apiary_question_by_id(UUID(q_id))

@@ -8,8 +8,8 @@ class ApiaryQuestionResponseSchema(BaseModel):
     apiary_id: UUID
     question_id: str
     category: str
-    question: str
-    type: str
+    question: str = Field(..., alias="question_text")
+    type: str = Field(..., alias="question_type")
     display_order: int
     is_required: bool
     options: Optional[str] = None
@@ -24,26 +24,14 @@ class ApiaryQuestionResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
-
-class HiveQuestionResponseSchema(BaseModel):
-    id: UUID
-    hive_id: UUID
-    apiary_question_id: UUID
-    display_order: int
-    is_active: bool
-    assigned_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    apiary_question: Optional[ApiaryQuestionResponseSchema] = None
-
-    class Config:
-        from_attributes = True
+        populate_by_name = True # Permite usar tanto 'question' como 'question_text'
 
 class CreateApiaryQuestionRequestSchema(BaseModel):
     apiary_id: UUID
     question_id: Optional[str] = None
-    category: str
-    question: str
-    type: str
+    category: str = "General"
+    question: str = Field(..., alias="question_text")
+    type: str = Field(..., alias="question_type")
     display_order: int = 0
     is_required: bool = False
     options: Optional[str] = None
@@ -51,6 +39,9 @@ class CreateApiaryQuestionRequestSchema(BaseModel):
     max_value: Optional[int] = None
     depends_on: Optional[str] = None
     score: int = 0
+
+    class Config:
+        populate_by_name = True
 
 class AssignQuestionToHiveRequestSchema(BaseModel):
     hive_id: UUID
