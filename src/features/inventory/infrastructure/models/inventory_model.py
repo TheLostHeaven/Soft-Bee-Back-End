@@ -6,7 +6,8 @@ from sqlalchemy import (
     TIMESTAMP,
     ForeignKey,
     UniqueConstraint,
-    DateTime
+    DateTime,
+    func
 )
 from datetime import datetime
 from sqlalchemy.orm import relationship
@@ -25,7 +26,7 @@ class InventoryModel(Base):
     unit = Column(String(50), nullable=False, default="unit")
     description = Column(Text)
     minimum_stock = Column(Integer, default=0)
-    created_at = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP")
+    created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     apiary = relationship("ApiaryModel", back_populates="inventories")

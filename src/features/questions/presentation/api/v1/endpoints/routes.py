@@ -126,8 +126,9 @@ def reorder_apiary_questions(apiary_id: str):
 
 # --- HIVE QUESTIONS (Asignación a Colmenas) ---
 
-@questions_bp.route("/hive", methods=['POST'])
+@questions_bp.route("/hive", methods=['POST', 'OPTIONS'])
 def assign_question_to_hive():
+    if request.method == 'OPTIONS': return '', 204
     try:
         data = request.json
         schema = AssignQuestionToHiveRequestSchema(**data)
@@ -139,24 +140,26 @@ def assign_question_to_hive():
             display_order=schema.display_order
         )
         
-        return jsonify(HiveQuestionResponseSchema.model_validate(new_question).model_dump()), HTTPStatus.CREATED
+        return jsonify(HiveQuestionResponseSchema.model_validate(new_question).model_dump(mode='json')), HTTPStatus.CREATED
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
-@questions_bp.route("/hive/<string:hive_id>", methods=['GET'])
+@questions_bp.route("/hive/<string:hive_id>", methods=['GET', 'OPTIONS'])
 def get_hive_questions(hive_id: str):
+    if request.method == 'OPTIONS': return '', 204
     """Obtiene todas las preguntas de una colmena con los detalles completos del apiario"""
     try:
         use_case = current_app.container.get_hive_questions_use_case()
         questions = use_case.execute(UUID(hive_id))
-        return jsonify([HiveQuestionResponseSchema.model_validate(q).model_dump() for q in questions]), HTTPStatus.OK
+        return jsonify([HiveQuestionResponseSchema.model_validate(q).model_dump(mode='json') for q in questions]), HTTPStatus.OK
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
-@questions_bp.route("/hive/<string:id>", methods=['PATCH'])
+@questions_bp.route("/hive/<string:id>", methods=['PATCH', 'OPTIONS'])
 def update_hive_question(id: str):
+    if request.method == 'OPTIONS': return '', 204
     """Actualiza la asignación de una pregunta a una colmena usando su UUID"""
     try:
         data = request.json
@@ -169,14 +172,15 @@ def update_hive_question(id: str):
         if not updated_question:
             return jsonify({"message": "Hive question assignment not found"}), HTTPStatus.NOT_FOUND
             
-        return jsonify(HiveQuestionResponseSchema.model_validate(updated_question).model_dump()), HTTPStatus.OK
+        return jsonify(HiveQuestionResponseSchema.model_validate(updated_question).model_dump(mode='json')), HTTPStatus.OK
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
-@questions_bp.route("/hive/<string:id>", methods=['DELETE'])
+@questions_bp.route("/hive/<string:id>", methods=['DELETE', 'OPTIONS'])
 def delete_hive_question(id: str):
+    if request.method == 'OPTIONS': return '', 204
     """Elimina la asignación de una pregunta a una colmena usando su UUID"""
     try:
         use_case = current_app.container.delete_hive_question_use_case()

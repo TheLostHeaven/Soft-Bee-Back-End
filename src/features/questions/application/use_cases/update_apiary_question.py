@@ -13,17 +13,17 @@ class UpdateApiaryQuestion:
         if not entity:
             return None
             
-        # Actualizar campos permitidos
-        entity.category = update_data.get("category", entity.category)
-        entity.question = update_data.get("question", entity.question)
-        entity.type = update_data.get("type", entity.type)
-        entity.is_required = update_data.get("is_required", entity.is_required)
-        entity.options = update_data.get("options", entity.options)
-        entity.display_order = update_data.get("display_order", entity.display_order)
-        entity.min_value = update_data.get("min_value", entity.min_value)
-        entity.max_value = update_data.get("max_value", entity.max_value)
+        # Actualizar campos permitidos manejando posibles alias del frontend
+        entity.category = update_data.get("category", update_data.get("categoria", entity.category))
+        entity.question = update_data.get("question", update_data.get("question_text", entity.question))
+        entity.type = update_data.get("type", update_data.get("question_type", entity.type))
+        entity.is_required = update_data.get("is_required", update_data.get("obligatoria", entity.is_required))
+        entity.options = update_data.get("options", update_data.get("opciones", entity.options))
+        entity.display_order = update_data.get("display_order", update_data.get("orden", entity.display_order))
+        entity.min_value = update_data.get("min_value", update_data.get("min", entity.min_value))
+        entity.max_value = update_data.get("max_value", update_data.get("max", entity.max_value))
         entity.depends_on = update_data.get("depends_on", entity.depends_on)
-        entity.is_active = update_data.get("is_active", entity.is_active)
+        entity.is_active = update_data.get("is_active", update_data.get("activa", entity.is_active))
         entity.score = update_data.get("score", entity.score)
             
         updated_entity = self.question_repository.update_apiary_question(entity)

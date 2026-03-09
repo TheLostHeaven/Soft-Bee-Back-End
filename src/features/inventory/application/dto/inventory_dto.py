@@ -1,10 +1,12 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
 
 class InventoryDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     apiary_id: UUID
     name: str
@@ -15,9 +17,6 @@ class InventoryDTO(BaseModel):
     minimum_stock: int
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class CreateInventoryDTO(BaseModel):
