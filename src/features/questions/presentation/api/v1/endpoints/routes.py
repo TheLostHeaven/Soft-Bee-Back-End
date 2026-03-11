@@ -18,7 +18,7 @@ def get_apiary_questions(apiary_id: str):
     try:
         use_case = current_app.container.get_apiary_questions_use_case()
         questions = use_case.execute(UUID(apiary_id))
-        return jsonify([ApiaryQuestionResponseSchema.model_validate(q).model_dump(mode='json') for q in questions]), HTTPStatus.OK
+        return jsonify([ApiaryQuestionResponseSchema.model_validate(q).model_dump(mode='json', by_alias=True) for q in questions]), HTTPStatus.OK
     except ValueError:
         return jsonify({"message": "Invalid Apiary ID format"}), HTTPStatus.BAD_REQUEST
     except Exception as e:
@@ -37,7 +37,7 @@ def create_apiary_question():
             question_data=schema.model_dump(exclude_unset=True)
         )
 
-        return jsonify(ApiaryQuestionResponseSchema.model_validate(new_question).model_dump(mode='json')), HTTPStatus.CREATED
+        return jsonify(ApiaryQuestionResponseSchema.model_validate(new_question).model_dump(mode='json', by_alias=True)), HTTPStatus.CREATED
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except Exception as e:
@@ -60,7 +60,7 @@ def update_apiary_question(id: str):
         if not updated_question:
             return jsonify({"message": "Apiary question not found"}), HTTPStatus.NOT_FOUND
             
-        return jsonify(ApiaryQuestionResponseSchema.model_validate(updated_question).model_dump(mode='json')), HTTPStatus.OK
+        return jsonify(ApiaryQuestionResponseSchema.model_validate(updated_question).model_dump(mode='json', by_alias=True)), HTTPStatus.OK
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
