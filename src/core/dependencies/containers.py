@@ -429,5 +429,9 @@ class MainContainer(containers.DeclarativeContainer):
     process_ai_prompt_use_case = providers.Factory(
         ProcessAIPromptUseCase,
         provider_registry=ai_provider_registry,
-        session_repository=session_repository
+        session_repository=session_repository,
+        get_apiary_questions_use_case=get_apiary_questions_use_case,
+        get_hive_questions_use_case=get_hive_questions_use_case,
+        create_answer_use_case=create_answer_use_case,
+        get_all_beehives_use_case=get_all_beehives_by_apiary_id_use_case
     )
