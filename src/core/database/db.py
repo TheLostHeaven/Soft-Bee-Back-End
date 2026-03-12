@@ -46,13 +46,18 @@ def init_app(app):
         """Asegura que la sesión de la base de datos se cierre después de cada solicitud."""
         session = db.session
         try:
-            if exception is None:
+            if exception is not None:
+                # Si hubo una excepción, hacer rollback
+                session.rollback()
+            else:
+                # Si todo fue bien, hacer commit
                 session.commit()
         except Exception as e:
+            # Si hay error en el commit, hacer rollback
             session.rollback()
-            # Optionally log the exception e
-            raise
+            current_app.logger.error(f"Error en teardown_db: {e}")
         finally:
+            # Siempre remover la sesión
             session.remove()
     
     with app.app_context():

@@ -58,9 +58,9 @@ docker-compose*.yml
 !README.md
 
 # Scripts (excluir todos excepto los necesarios para Docker/Render)
-*.sh
-!docker-entrypoint.sh
-!render-build.sh
+create_feature.sh
+init_project.sh
+seed_questions.py
 
 # Otros
 .DS_Store
