@@ -45,15 +45,6 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     container = MainContainer()
     container.config.from_dict(app.config)
     container.db_session.override(providers.Factory(get_db))
-    container.wire(modules=["src.features.auth.presentation.api.v1.endpoints.auth",
-                            "src.features.apiaries.presentation.api.v1.endpoints.apiary_endpoints",
-                            "src.features.user.presentation.api.v1.endpoints.users",
-                            "src.features.beehive.presentation.api.v1.endpoints.beehive_endpoints",
-                            "src.features.inventory.presentation.api.v1.endpoints.inventory_endpoints",
-                            "src.features.ai_agent.presentation.api.v1.endpoints.ai_agent",
-                            "src.features.treatments.presentation.api.v1.endpoints.routes",
-                            "src.features.questions.presentation.api.v1.endpoints.routes",
-                            "src.features.answer.presentation.api.v1.endpoints.routes"])
     app.container = container
 
     # Inicializar base de datos y migraciones
@@ -61,7 +52,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
 
     # from src.routes.health import create_health_routes
     # from src.routes.auth import create_auth_routes
-    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'ai_agent', 'treatments', 'questions', 'answer']
+    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'ai_agent', 'treatments', 'questions', 'answer', 'reports']
     registered_features = register_features(app, features_to_register)
 
     print("\n" + "="*50)
