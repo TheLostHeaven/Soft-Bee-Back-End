@@ -9,7 +9,6 @@ class ApiaryDto(BaseModel):
     name: str
     location: Optional[str]
     beehives_count: int
-    treatments: bool
     created_at: datetime
     updated_at: datetime
     
@@ -21,10 +20,8 @@ class CreateApiaryDto(BaseModel):
     name: str
     location: Optional[str] = None
     beehives_count: int = 0
-    treatments: bool = False
 
 class UpdateApiaryDto(BaseModel):
     name: Optional[str] = None
     location: Optional[str] = None
     beehives_count: Optional[int] = None
-    treatments: Optional[bool] = None

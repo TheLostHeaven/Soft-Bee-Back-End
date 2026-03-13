@@ -14,6 +14,7 @@ class CreateBeehiveDTO(BaseModel):
     health_status: Optional[str] = Field(None, example="Saludable")
     has_production_chamber: Optional[str] = Field(None, example="No")
     observations: Optional[str] = Field(None, example="Sin observaciones.")
+    treatments: bool = Field(False, example=True)
 
 
 class UpdateBeehiveDTO(BaseModel):
@@ -25,6 +26,7 @@ class UpdateBeehiveDTO(BaseModel):
     health_status: Optional[str] = Field(None, example="Presencia de varroa")
     has_production_chamber: Optional[str] = Field(None, example="No")
     observations: Optional[str] = Field(None, example="Se observó presencia de varroa.")
+    treatments: Optional[bool] = Field(None, example=True)
 
 
 class BeehiveDTO(BaseModel):
@@ -39,6 +41,7 @@ class BeehiveDTO(BaseModel):
     health_status: Optional[str]
     has_production_chamber: Optional[str]
     observations: Optional[str]
+    treatments: bool
     created_at: Optional[str]
     updated_at: Optional[str]
 
