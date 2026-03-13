@@ -52,7 +52,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
 
     # from src.routes.health import create_health_routes
     # from src.routes.auth import create_auth_routes
-    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'ai_agent', 'treatments', 'questions', 'answer', 'reports']
+    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'ai_agent', 'treatments', 'questions', 'answer', 'reports', 'statistics']
     registered_features = register_features(app, features_to_register)
 
     print("\n" + "="*50)
