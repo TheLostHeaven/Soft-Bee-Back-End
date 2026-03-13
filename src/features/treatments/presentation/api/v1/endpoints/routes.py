@@ -23,7 +23,7 @@ def create_treatment():
         use_case: CreateTreatmentUseCase = current_app.container.create_treatment_use_case()
         
         treatment_dto = use_case.execute(create_request)
-        return jsonify(TreatmentResponseSchema.model_validate(treatment_dto).model_dump()), HTTPStatus.CREATED
+        return jsonify(TreatmentResponseSchema.model_validate(treatment_dto).model_dump(mode='json')), HTTPStatus.CREATED
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except Exception as e:
@@ -34,7 +34,7 @@ def get_treatments_by_hive(hive_id: UUID):
     try:
         use_case: GetTreatmentsByHiveUseCase = current_app.container.get_treatments_by_hive_use_case()
         treatments_dto = use_case.execute(hive_id)
-        return jsonify([TreatmentResponseSchema.model_validate(t).model_dump() for t in treatments_dto]), HTTPStatus.OK
+        return jsonify([TreatmentResponseSchema.model_validate(t).model_dump(mode='json') for t in treatments_dto]), HTTPStatus.OK
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
@@ -49,7 +49,7 @@ def create_followup():
         use_case: CreateFollowupUseCase = current_app.container.create_followup_use_case()
         
         followup_dto = use_case.execute(create_request)
-        return jsonify(FollowupResponseSchema.model_validate(followup_dto).model_dump()), HTTPStatus.CREATED
+        return jsonify(FollowupResponseSchema.model_validate(followup_dto).model_dump(mode='json')), HTTPStatus.CREATED
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
     except Exception as e:
