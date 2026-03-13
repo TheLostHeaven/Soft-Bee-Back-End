@@ -5,7 +5,7 @@ from src.shared.utils.file_handler import FileHandler
 from src.core.database.db import init_app, get_db
 from src.api.router import register_features
 from config import get_config
-from datetime import datetime
+from datetime import datetime, date
 from flask.json.provider import DefaultJSONProvider 
 import os
 from src.core.dependencies.containers import MainContainer
@@ -13,8 +13,8 @@ from src.core.dependencies.containers import MainContainer
 
 class CustomJSONProvider(DefaultJSONProvider):
     def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.strftime('%Y-%m-%dT%H:%M:%S')
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
         return super().default(obj)
 
 def create_app(config_name: str = None, features_config: dict = None, testing: bool = False):
