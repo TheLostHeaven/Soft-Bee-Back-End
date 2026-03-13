@@ -71,6 +71,9 @@ from src.features.ai_agent.infrastructure.services.ai_provider_registry import A
 from src.features.ai_agent.infrastructure.services.session_repository_impl import InMemoryAISessionRepository
 from src.features.ai_agent.application.use_cases.process_ai_prompt import ProcessAIPromptUseCase
 
+from src.features.reports.infrastructure.services.report_service_impl import ReportServiceImpl
+from src.features.reports.application.use_cases.generate_apiary_report import GenerateApiaryReport
+
 config_obj = get_config()
 
 class MainContainer(containers.DeclarativeContainer):
@@ -419,4 +422,15 @@ class MainContainer(containers.DeclarativeContainer):
         ProcessAIPromptUseCase,
         provider_registry=ai_provider_registry,
         session_repository=session_repository
+    )
+
+    # Reports feature
+    report_service = providers.Factory(
+        ReportServiceImpl,
+        db_session=db_session
+    )
+
+    generate_apiary_report_use_case = providers.Factory(
+        GenerateApiaryReport,
+        report_service=report_service
     )
