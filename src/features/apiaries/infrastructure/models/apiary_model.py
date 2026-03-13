@@ -15,7 +15,6 @@ class ApiaryModel(Base):
     name = Column(String(100), nullable=False)
     location = Column(String(50), nullable=True)
     beehives_count = Column(Integer, default=0)
-    treatments = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

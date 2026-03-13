@@ -2,6 +2,7 @@ from sqlalchemy import (
     Column,
     Integer,
     Text,
+    Boolean,
     TIMESTAMP,
     ForeignKey,
 )
@@ -25,6 +26,7 @@ class BeehiveModel(Base):
     health_status = Column(Text, nullable=True)
     has_production_chamber = Column(Text, nullable=True)
     observations = Column(Text)
+    treatments = Column(Boolean, default=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
