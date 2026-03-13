@@ -17,6 +17,7 @@ class Beehive:
         health_status: Optional[str],
         has_production_chamber: Optional[str],
         observations: Optional[str],
+        treatments: bool = False,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
     ):
@@ -31,5 +32,6 @@ class Beehive:
         self.health_status = health_status
         self.has_production_chamber = has_production_chamber
         self.observations = observations
+        self.treatments = treatments
         self.created_at = created_at
         self.updated_at = updated_at
