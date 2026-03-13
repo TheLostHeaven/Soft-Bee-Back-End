@@ -45,6 +45,12 @@ class TreatmentRepositoryImpl(TreatmentRepository):
                 applied_by=treatment.applied_by
             )
             self.db_session.add(model)
+            
+            # Update beehive treatments flag
+            from src.features.beehive.infrastructure.models.beehive_model import BeehiveModel
+            beehive = self.db_session.query(BeehiveModel).filter(BeehiveModel.id == treatment.hive_id).first()
+            if beehive:
+                beehive.treatments = True
         else:
             model.treatment_type = treatment.treatment_type
             model.product_name = treatment.product_name
