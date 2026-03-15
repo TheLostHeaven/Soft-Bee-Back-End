@@ -74,6 +74,13 @@ from src.features.ai_agent.application.use_cases.process_ai_prompt import Proces
 from src.features.reports.infrastructure.services.report_service_impl import ReportServiceImpl
 from src.features.reports.application.use_cases.generate_apiary_report import GenerateApiaryReport
 
+from src.features.statistics.infrastructure.repositories.statistics_repository_impl import StatisticsRepositoryImpl
+from src.features.statistics.application.use_cases.get_apiary_statistics import GetApiaryStatisticsUseCase
+from src.features.statistics.application.use_cases.get_beehive_health_trends import GetBeehiveHealthTrendsUseCase
+from src.features.statistics.application.use_cases.get_treatment_distribution import GetTreatmentDistributionUseCase
+from src.features.statistics.application.use_cases.get_inventory_levels import GetInventoryLevelsUseCase
+from src.features.statistics.application.use_cases.get_answer_score_trends import GetAnswerScoreTrendsUseCase
+
 config_obj = get_config()
 
 class MainContainer(containers.DeclarativeContainer):
@@ -433,4 +440,35 @@ class MainContainer(containers.DeclarativeContainer):
     generate_apiary_report_use_case = providers.Factory(
         GenerateApiaryReport,
         report_service=report_service
+    )
+
+    # Statistics feature
+    statistics_repository = providers.Factory(
+        StatisticsRepositoryImpl,
+        db=db_session
+    )
+
+    get_apiary_statistics_use_case = providers.Factory(
+        GetApiaryStatisticsUseCase,
+        repository=statistics_repository
+    )
+
+    get_beehive_health_trends_use_case = providers.Factory(
+        GetBeehiveHealthTrendsUseCase,
+        repository=statistics_repository
+    )
+
+    get_treatment_distribution_use_case = providers.Factory(
+        GetTreatmentDistributionUseCase,
+        repository=statistics_repository
+    )
+
+    get_inventory_levels_use_case = providers.Factory(
+        GetInventoryLevelsUseCase,
+        repository=statistics_repository
+    )
+
+    get_answer_score_trends_use_case = providers.Factory(
+        GetAnswerScoreTrendsUseCase,
+        repository=statistics_repository
     )
