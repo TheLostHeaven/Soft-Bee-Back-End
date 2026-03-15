@@ -89,16 +89,17 @@ def record_movement(
         return "", 204
     try:
         data = request.get_json()
-        # El frontend envía 'inventory_id', 'movement_type', 'quantity'
         inv_id = UUID(data.get('inventory_id'))
         qty = int(data.get('quantity'))
         mov_type = data.get('movement_type')
+        reason = data.get('reason', 'Ajuste manual')
+        notes = data.get('notes')
         
         # Si es salida, la cantidad debe ser negativa para el ajuste
         adjustment = qty if mov_type == 'entry' else -qty
         
         dto = AdjustInventoryDTO(adjustment_amount=adjustment)
-        inventory = adjust_use_case.execute(inv_id, dto)
+        inventory = adjust_use_case.execute(inv_id, dto, reason=reason, notes=notes)
         
         return jsonify(InventoryMapper.to_dto(inventory).model_dump(mode='json')), 201
     except Exception as e:
@@ -107,12 +108,18 @@ def record_movement(
 
 @inventory_bp.route("/<uuid:inventory_id>/movements", methods=["GET", "OPTIONS"])
 @inject
-def get_movements(inventory_id: UUID):
-    """Endpoint para obtener historial (simulado por ahora si no hay tabla de logs)"""
+def get_movements(
+    inventory_id: UUID,
+    repo = Provide[MainContainer.inventory_container.inventory_repository]
+):
+    """Endpoint para obtener historial real del producto"""
     if request.method == "OPTIONS":
         return "", 204
-    # Por ahora devolvemos una lista vacía para evitar el 404/CORS error
-    return jsonify([]), 200
+    try:
+        movements = repo.get_movements(inventory_id)
+        return jsonify(movements), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 @inventory_bp.route("/<uuid:inventory_id>", methods=["PUT"])

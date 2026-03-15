@@ -153,8 +153,16 @@ def get_hive_questions(hive_id: str):
     try:
         use_case = current_app.container.get_hive_questions_use_case()
         questions = use_case.execute(UUID(hive_id))
-        return jsonify([HiveQuestionResponseSchema.model_validate(q).model_dump(mode='json') for q in questions]), HTTPStatus.OK
+        
+        # Log de depuración para ver qué se está enviando
+        current_app.logger.debug(f"Sending {len(questions)} questions for hive {hive_id}")
+        
+        # Aseguramos by_alias=True para mapear question -> question_text
+        results = [HiveQuestionResponseSchema.model_validate(q).model_dump(mode='json', by_alias=True) for q in questions]
+        return jsonify(results), HTTPStatus.OK
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @questions_bp.route("/hive/<string:id>", methods=['PATCH', 'OPTIONS'])

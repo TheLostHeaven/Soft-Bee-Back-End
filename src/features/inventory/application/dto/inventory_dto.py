@@ -15,6 +15,14 @@ class InventoryDTO(BaseModel):
     unit: str
     description: Optional[str]
     minimum_stock: int
+    
+    # Campos Profesionales
+    batch_number: Optional[str] = None
+    expiry_date: Optional[datetime] = None
+    purchase_date: Optional[datetime] = None
+    supplier: Optional[str] = None
+    storage_location: Optional[str] = None
+    
     created_at: datetime
     updated_at: datetime
 
@@ -25,8 +33,15 @@ class CreateInventoryDTO(BaseModel):
     category: str = "General"
     quantity: int
     unit: str
-    description: Optional[str]
-    minimum_stock: int
+    description: Optional[str] = None
+    minimum_stock: int = 0
+    
+    # Campos Profesionales
+    batch_number: Optional[str] = None
+    expiry_date: Optional[datetime] = None
+    purchase_date: Optional[datetime] = None
+    supplier: Optional[str] = None
+    storage_location: Optional[str] = None
 
 
 class UpdateInventoryDTO(BaseModel):
@@ -36,6 +51,13 @@ class UpdateInventoryDTO(BaseModel):
     unit: Optional[str] = None
     description: Optional[str] = None
     minimum_stock: Optional[int] = None
+    
+    # Campos Profesionales
+    batch_number: Optional[str] = None
+    expiry_date: Optional[datetime] = None
+    purchase_date: Optional[datetime] = None
+    supplier: Optional[str] = None
+    storage_location: Optional[str] = None
 
 
 class AdjustInventoryDTO(BaseModel):

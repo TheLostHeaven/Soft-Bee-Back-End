@@ -11,13 +11,14 @@ class AdjustInventoryUseCase:
     def __init__(self, repository: InventoryRepository):
         self.repository = repository
 
-    def execute(self, inventory_id: UUID, dto: AdjustInventoryDTO) -> Inventory:
+    def execute(self, inventory_id: UUID, dto: AdjustInventoryDTO, reason: str = "Ajuste manual", notes: str = None) -> Inventory:
         inventory = self.repository.get_by_id(inventory_id)
 
         if not inventory:
             raise InventoryNotFoundError(inventory_id)
 
-        new_quantity = inventory.quantity + dto.adjustment_amount
+        stock_before = inventory.quantity
+        new_quantity = stock_before + dto.adjustment_amount
 
         if new_quantity < 0:
             raise InvalidInventoryAdjustmentError(
@@ -26,5 +27,16 @@ class AdjustInventoryUseCase:
 
         inventory.quantity = new_quantity
         updated_inventory = self.repository.update(inventory)
+        
+        # Record the movement in history
+        self.repository.record_movement(
+            inventory_id=inventory_id,
+            movement_type='entry' if dto.adjustment_amount > 0 else 'exit',
+            quantity=abs(dto.adjustment_amount),
+            stock_before=stock_before,
+            stock_after=new_quantity,
+            reason=reason,
+            notes=notes
+        )
         
         return updated_inventory

@@ -87,7 +87,7 @@ def init_app(app):
             from src.features.auth.infrastructure.models.user_model import UserModel
             from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
             from src.features.beehive.infrastructure.models.beehive_model import BeehiveModel
-            from src.features.inventory.infrastructure.models.inventory_model import InventoryModel
+            from src.features.inventory.infrastructure.models.inventory_model import InventoryModel, InventoryMovementModel
             from src.features.questions.infrastructure.models.question_models import ApiaryQuestionModel, HiveQuestionModel
             from src.features.answer.infrastructure.models.answer_models import HiveAnswerModel
             from src.features.treatments.infrastructure.models.treatment_model import TreatmentModel, TreatmentFollowupModel

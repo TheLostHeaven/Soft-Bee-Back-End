@@ -14,5 +14,13 @@ class Inventory:
     unit: str
     description: Optional[str]
     minimum_stock: int
-    created_at: datetime
-    updated_at: datetime
+    
+    # Campos Profesionales
+    batch_number: Optional[str] = None
+    expiry_date: Optional[datetime] = None
+    purchase_date: Optional[datetime] = None
+    supplier: Optional[str] = None
+    storage_location: Optional[str] = None
+    
+    created_at: datetime = None
+    updated_at: datetime = None
