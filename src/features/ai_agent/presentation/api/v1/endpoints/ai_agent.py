@@ -13,6 +13,8 @@ ai_agent_bp = Blueprint('ai_agent_v1', __name__, url_prefix='/api/v1/ai')
 # Maya Voz (Monitoreo Estructurado) - Nuevo prefijo específico /api/v1/maya
 maya_voice_bp = Blueprint('maya_voice_v1', __name__, url_prefix='/api/v1/maya')
 
+print("DEBUG: Cargando módulo ai_agent endpoints y registrando maya_voice_bp")
+
 @ai_agent_bp.route('/ask', methods=['POST'])
 @inject
 def ask_ai(
@@ -33,23 +35,30 @@ def ask_ai(
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@maya_voice_bp.route('/iniciar-monitoreo', methods=['POST', 'OPTIONS'])
+@maya_voice_bp.route('/iniciar-monitoreo', methods=['POST'])
 @inject
 def iniciar_monitoreo(
     get_questions_use_case = Provide[MainContainer.get_hive_questions_use_case]
 ):
     """Endpoint para Maya Voz: Carga preguntas estructuradas de la DB"""
-    if request.method == 'OPTIONS': return '', 204
     try:
         data = request.json
         hive_id = data.get('hive_id')
+        
+        # LOGS SOLICITADOS
+        print("DEBUG: Hive ID recibido:", hive_id)
+        
         if not hive_id:
             return jsonify({"error": "hive_id is required"}), 400
             
         current_app.logger.info(f"Maya Voz: Buscando preguntas para colmena ID: {hive_id}")
         
-        # 1. Obtener preguntas asignadas a la colmena
-        questions = get_questions_use_case.execute(UUID(hive_id))
+        # 1. Obtener preguntas asignadas a la colmena (Reutilizando Caso de Uso existente)
+        # Esto ya reutiliza la lógica de /api/v1/questions/hive/{hive_id}
+        questions = get_questions_use_case.execute(UUID(str(hive_id)))
+        
+        # LOGS SOLICITADOS
+        print("DEBUG: Preguntas encontradas:", len(questions))
         
         # 2. Filtrar solo las ACTIVAS (Tanto en la colmena como en el banco general)
         active_questions = []
@@ -72,15 +81,16 @@ def iniciar_monitoreo(
         return jsonify({"preguntas": active_questions}), 200
     except Exception as e:
         current_app.logger.error(f"Maya Voz Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@maya_voice_bp.route('/guardar-respuestas', methods=['POST', 'OPTIONS'])
+@maya_voice_bp.route('/guardar-respuestas', methods=['POST'])
 @inject
 def guardar_respuestas(
     batch_save_use_case = Provide[MainContainer.create_answers_batch_use_case]
 ):
     """Endpoint para Maya Voz: Guarda respuestas en hive_answers"""
-    if request.method == 'OPTIONS': return '', 204
     try:
         data = request.json
         respuestas_raw = data.get('respuestas', [])
