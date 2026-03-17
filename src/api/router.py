@@ -19,32 +19,17 @@ class FeatureRouter:
             module = __import__(module_name, fromlist=[''])
 
 
-            # 2. Buscar blueprint
-            blueprint_names = [
-                f'{feature_name}_bp',
-                'auth_bp',
-                'api_bp',
-                'user_bp', # Added user_bp
-                'beehive_bp',
-                'inventory_bp', # Added inventory_bp
-                'ai_agent_bp',
-                'questions_bp',
-                'answers_bp', # Added answers_bp
-                'bp',
-            ]
-            
-            blueprint = None
+            # 2. Buscar y registrar blueprints
+            registered_any = False
             for bp_name in blueprint_names:
-                has_bp = hasattr(module, bp_name)
-                if has_bp:
+                if hasattr(module, bp_name):
                     found_bp = getattr(module, bp_name)
                     if found_bp: # Asegurarse de que no es None
-                        blueprint = found_bp
-                        break
+                        self.app.register_blueprint(found_bp)
+                        registered_any = True
             
-            # 3. Registrar el blueprint
-            if blueprint:
-                self.app.register_blueprint(blueprint)
+            # 3. Marcar como registrada si se encontró al menos uno
+            if registered_any:
                 self.registered_features.append(feature_name)
                 return True
             else:
