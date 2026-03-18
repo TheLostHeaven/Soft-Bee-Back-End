@@ -30,6 +30,7 @@ class FeatureRouter:
                 'questions_bp',
                 'answers_bp', # Added answers_bp
                 'reports_bp', # Added reports_bp
+                'statistics_bp', # Added statistics_bp
                 'bp',
             ]
             
