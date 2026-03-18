@@ -64,6 +64,16 @@ class SQLAlchemyQuestionRepository(QuestionRepository):
 
     # Hive Questions
     def create_hive_question(self, question: HiveQuestion) -> HiveQuestion:
+        # Verificar si ya existe la relación para evitar errores de restricción única
+        existing_model = self.db_session.query(HiveQuestionModel).filter_by(
+            hive_id=question.hive_id,
+            apiary_question_id=question.apiary_question_id
+        ).first()
+        
+        if existing_model:
+            # Si ya existe, simplemente lo devolvemos (podríamos actualizarlo si fuera necesario)
+            return QuestionMapper.hive_to_entity(existing_model)
+
         model = QuestionMapper.hive_to_model(question)
         self.db_session.add(model)
         self.db_session.commit()

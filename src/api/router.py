@@ -1,5 +1,5 @@
 # src/api/router.py
-from flask import Flask
+from flask import Flask, Blueprint
 from typing import List, Dict, Optional
 
 class FeatureRouter:
@@ -23,8 +23,7 @@ class FeatureRouter:
             module = __import__(module_name, fromlist=[''])
 
             # 2. Definir los nombres posibles de los Blueprints en el sistema
-            # Usamos un set para evitar duplicados y errores de registro doble
-            potential_names = {
+            potential_names = [
                 f'{feature_name}_bp',
                 'auth_bp',
                 'api_bp',
@@ -37,15 +36,16 @@ class FeatureRouter:
                 'answers_bp',
                 'treatments_bp',
                 'bp',
-            }
+            ]
 
             # 3. Buscar y registrar todos los blueprints que existan en el módulo
             registered_any = False
             for bp_name in potential_names:
                 if hasattr(module, bp_name):
                     found_bp = getattr(module, bp_name)
+                    # Verificar que sea un objeto Blueprint de Flask
                     if found_bp and isinstance(found_bp, Blueprint):
-                        # Verificar si ya está registrado para evitar AssertionError
+                        # Evitar doble registro si el nombre ya existe
                         if found_bp.name not in self.app.blueprints:
                             try:
                                 self.app.register_blueprint(found_bp)
@@ -59,17 +59,13 @@ class FeatureRouter:
                 self.registered_features.append(feature_name)
                 return True
             else:
-                # Si el módulo existe pero no tiene blueprints conocidos
-                print(f"⚠️  Advertencia: No se encontraron blueprints en el módulo {feature_name}")
                 return False
                 
-        except ImportError as e:
+        except ImportError:
             # El módulo de la feature no tiene endpoints definidos
             return False
         except Exception as e:
             print(f"❌ Error registrando feature {feature_name}: {str(e)}")
-            import traceback
-            traceback.print_exc()
             return False
 
     def register_many(self, features_config: Dict[str, bool]) -> List[str]:
@@ -88,13 +84,6 @@ class FeatureRouter:
 def register_features(app: Flask, features: List[str]) -> List[str]:
     """
     Función helper de alto nivel para registrar una lista de nombres de features.
-    
-    Args:
-        app: Instancia de la aplicación Flask.
-        features: Lista de strings con los nombres de las carpetas en src/features/.
-        
-    Returns:
-        List[str]: Nombres de las features que se registraron correctamente.
     """
     router = FeatureRouter(app)
     features_config = {name: True for name in features}
