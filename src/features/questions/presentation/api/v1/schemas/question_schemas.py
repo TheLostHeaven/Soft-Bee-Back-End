@@ -1,15 +1,17 @@
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
 class ApiaryQuestionResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
     id: UUID
     apiary_id: UUID
     question_id: str
     category: str
-    question: str
-    type: str
+    question: str = Field(..., alias="question_text")
+    type: str = Field(..., alias="question_type")
     display_order: int
     is_required: bool
     options: Optional[str] = None
@@ -22,10 +24,9 @@ class ApiaryQuestionResponseSchema(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
-
 class HiveQuestionResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: UUID
     hive_id: UUID
     apiary_question_id: UUID
@@ -35,15 +36,14 @@ class HiveQuestionResponseSchema(BaseModel):
     updated_at: Optional[datetime] = None
     apiary_question: Optional[ApiaryQuestionResponseSchema] = None
 
-    class Config:
-        from_attributes = True
-
 class CreateApiaryQuestionRequestSchema(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    
     apiary_id: UUID
     question_id: Optional[str] = None
-    category: str
-    question: str
-    type: str
+    category: str = "General"
+    question: str = Field(..., alias="question_text")
+    type: str = Field(..., alias="question_type")
     display_order: int = 0
     is_required: bool = False
     options: Optional[str] = None

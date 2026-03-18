@@ -53,6 +53,8 @@ from src.features.questions.application.use_cases.assign_question_to_hive import
 from src.features.questions.application.use_cases.create_apiary_question import CreateApiaryQuestion
 from src.features.questions.application.use_cases.get_apiary_questions import GetApiaryQuestions
 from src.features.questions.application.use_cases.update_apiary_question import UpdateApiaryQuestion
+from src.features.questions.application.use_cases.delete_apiary_question import DeleteApiaryQuestion
+from src.features.questions.application.use_cases.get_default_questions import GetDefaultQuestions
 
 from src.features.answer.infrastructure.repositories.sqlalchemy_answer_repository import SQLAlchemyAnswerRepository
 from src.features.answer.application.use_cases.create_answer import CreateAnswer
@@ -207,6 +209,15 @@ class MainContainer(containers.DeclarativeContainer):
     update_apiary_question_use_case = providers.Factory(
         UpdateApiaryQuestion,
         question_repository=question_repository
+    )
+
+    delete_apiary_question_use_case = providers.Factory(
+        DeleteApiaryQuestion,
+        question_repository=question_repository
+    )
+
+    get_default_questions_use_case = providers.Factory(
+        GetDefaultQuestions
     )
 
     # Answer repository and use cases
@@ -421,7 +432,11 @@ class MainContainer(containers.DeclarativeContainer):
     process_ai_prompt_use_case = providers.Factory(
         ProcessAIPromptUseCase,
         provider_registry=ai_provider_registry,
-        session_repository=session_repository
+        session_repository=session_repository,
+        get_apiary_questions_use_case=get_apiary_questions_use_case,
+        get_hive_questions_use_case=get_hive_questions_use_case,
+        create_answer_use_case=create_answer_use_case,
+        get_all_beehives_use_case=get_all_beehives_by_apiary_id_use_case
     )
 
     # Reports feature

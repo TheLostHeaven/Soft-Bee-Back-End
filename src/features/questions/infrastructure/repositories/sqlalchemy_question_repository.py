@@ -54,6 +54,14 @@ class SQLAlchemyQuestionRepository(QuestionRepository):
             return QuestionMapper.apiary_to_entity(model)
         return None
 
+    def delete_apiary_question(self, question_id: UUID) -> bool:
+        model = self.db_session.query(ApiaryQuestionModel).filter_by(id=question_id).first()
+        if model:
+            self.db_session.delete(model)
+            self.db_session.commit()
+            return True
+        return False
+
     # Hive Questions
     def create_hive_question(self, question: HiveQuestion) -> HiveQuestion:
         model = QuestionMapper.hive_to_model(question)
