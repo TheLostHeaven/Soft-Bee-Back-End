@@ -45,44 +45,29 @@ def iniciar_monitoreo(
         data = request.json
         hive_id = data.get('hive_id')
         
-        # LOGS SOLICITADOS
-        print("DEBUG: Hive ID recibido:", hive_id)
-        
         if not hive_id:
             return jsonify({"error": "hive_id is required"}), 400
             
         current_app.logger.info(f"Maya Voz: Buscando preguntas para colmena ID: {hive_id}")
         
         # 1. Obtener preguntas asignadas a la colmena (Reutilizando Caso de Uso existente)
-        # Esto ya reutiliza la lógica de /api/v1/questions/hive/{hive_id}
         questions = get_questions_use_case.execute(UUID(str(hive_id)))
         
-        # LOGS SOLICITADOS
-        print("DEBUG: Preguntas encontradas:", len(questions))
-        
         # 2. Filtrar solo las ACTIVAS (Tanto en la colmena como en el banco general)
-        active_questions = []
-        for hq in questions:
-            # hq es HiveQuestionDto
-            if hq.is_active and hq.apiary_question and hq.apiary_question.is_active:
-                aq = hq.apiary_question
-                active_questions.append({
-                    "id": str(hq.id), # ID de la relación hive_question para guardar la respuesta
-                    "texto": aq.question,
-                    "tipo": aq.type,
-                    "obligatoria": aq.is_required,
-                    "opciones": aq.options.split(',') if aq.options else None,
-                    "min": aq.min_value,
-                    "max": aq.max_value,
-                    "categoria": aq.category
-                })
+        active_questions = [hq for hq in questions if hq.is_active and hq.apiary_question and hq.apiary_question.is_active]
         
-        current_app.logger.info(f"Maya Voz: Se enviarán {len(active_questions)} preguntas activas.")
-        return jsonify({"preguntas": active_questions}), 200
+        # 3. Serializar usando el ESQUEMA ESTÁNDAR para garantizar consistencia total
+        from src.features.questions.presentation.api.v1.schemas.question_schemas import HiveQuestionResponseSchema
+        
+        serialized_questions = [
+            HiveQuestionResponseSchema.model_validate(hq).model_dump(mode='json', by_alias=True) 
+            for hq in active_questions
+        ]
+        
+        current_app.logger.info(f"Maya Voz: Se enviarán {len(serialized_questions)} preguntas activas con formato estándar.")
+        return jsonify({"preguntas": serialized_questions}), 200
     except Exception as e:
         current_app.logger.error(f"Maya Voz Error: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @maya_voice_bp.route('/guardar-respuestas', methods=['POST'])
@@ -90,18 +75,17 @@ def iniciar_monitoreo(
 def guardar_respuestas(
     batch_save_use_case = Provide[MainContainer.create_answers_batch_use_case]
 ):
-    """Endpoint para Maya Voz: Guarda respuestas en hive_answers"""
+    """Endpoint para Maya Voz: Guarda respuestas reutilizando la lógica de Answers Batch"""
     try:
         data = request.json
-        respuestas_raw = data.get('respuestas', [])
+        # El frontend ahora envía el formato estándar: {"answers": [{"hive_question_id": ..., "answer": ...}]}
+        from src.features.answer.presentation.api.v1.schemas.answer_schemas import BatchCreateAnswersRequestSchema
         
-        current_app.logger.info(f"Maya Voz: Recibidas {len(respuestas_raw)} respuestas para guardar.")
+        # Validación del esquema estándar
+        schema = BatchCreateAnswersRequestSchema(**data)
         
-        answers_data = [{
-            "hive_question_id": UUID(r['pregunta_id']),
-            "answer": str(r['valor']),
-            "score": 0 
-        } for r in respuestas_raw]
+        # Convertir a formato que espera el caso de uso
+        answers_data = [item.model_dump() for item in schema.answers]
         
         batch_save_use_case.execute(answers_data)
         
