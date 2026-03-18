@@ -7,15 +7,11 @@ from src.features.ai_agent.application.dto.ai_prompt_dto import AIPromptDTO
 from src.features.ai_agent.application.use_cases.process_ai_prompt import ProcessAIPromptUseCase
 from src.core.dependencies.containers import MainContainer
 
-# Maya Bot (Chat IA) - Mantiene su prefijo original /api/v1/ai
-ai_agent_bp = Blueprint('ai_agent_v1', __name__, url_prefix='/api/v1/ai')
+# Blueprint unificado para la feature AI Agent (Maya)
+# Usamos un prefijo base /api/v1 para ser consistente con el resto de la app
+ai_agent_bp = Blueprint('ai_agent_v1', __name__, url_prefix='/api/v1')
 
-# Maya Voz (Monitoreo Estructurado) - Nuevo prefijo específico /api/v1/maya
-maya_voice_bp = Blueprint('maya_voice_v1', __name__, url_prefix='/api/v1/maya')
-
-print("DEBUG: Cargando módulo ai_agent endpoints y registrando maya_voice_bp")
-
-@ai_agent_bp.route('/ask', methods=['POST', 'OPTIONS'])
+@ai_agent_bp.route('/ai/ask', methods=['POST', 'OPTIONS'])
 @inject
 def ask_ai(
     process_use_case: ProcessAIPromptUseCase = Provide[MainContainer.process_ai_prompt_use_case]
@@ -38,10 +34,12 @@ def ask_ai(
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@maya_voice_bp.route('/iniciar-monitoreo', methods=['POST', 'OPTIONS'])
+@ai_agent_bp.route('/maya/iniciar-monitoreo', methods=['POST', 'OPTIONS'])
 @inject
 def iniciar_monitoreo(
-    get_questions_use_case = Provide[MainContainer.get_hive_questions_use_case]
+    get_questions_use_case = Provide[MainContainer.get_hive_questions_use_case],
+    beehive_repo = Provide[MainContainer.beehive_repository],
+    initialize_hive_questions_use_case = Provide[MainContainer.initialize_hive_questions_use_case]
 ):
     """Endpoint para Maya Voz: Carga preguntas estructuradas de la DB"""
     if request.method == 'OPTIONS':
@@ -49,34 +47,71 @@ def iniciar_monitoreo(
         
     try:
         data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
         hive_id = data.get('hive_id')
-        
         if not hive_id:
             return jsonify({"error": "hive_id is required"}), 400
             
-        current_app.logger.info(f"Maya Voz: Buscando preguntas para colmena ID: {hive_id}")
+        hive_uuid = UUID(str(hive_id))
+        current_app.logger.info(f"Maya Voz: Buscando preguntas para colmena ID: {hive_uuid}")
         
-        # 1. Obtener preguntas asignadas a la colmena
-        questions = get_questions_use_case.execute(UUID(str(hive_id)))
+        # 1. Obtener la colmena para conocer su apiario
+        hive = beehive_repo.get_beehive_by_id(hive_uuid)
+        if not hive:
+            return jsonify({"error": "Beehive not found"}), 404
+            
+        # 2. SINCRONIZAR: Asegurar que la colmena tenga las preguntas del apiario actualizadas
+        # Esto garantiza que si el usuario añade preguntas "a nivel general", Maya las tome.
+        initialize_hive_questions_use_case.execute(hive_uuid, hive.apiary_id)
         
-        # 2. Filtrar solo las ACTIVAS
-        active_questions = [hq for hq in questions if hq.is_active and hq.apiary_question and hq.apiary_question.is_active]
+        # 3. Obtener preguntas asignadas a la colmena (ahora ya sincronizadas)
+        questions = get_questions_use_case.execute(hive_uuid)
         
-        # 3. Serializar usando el ESQUEMA ESTÁNDAR
-        from src.features.questions.presentation.api.v1.schemas.question_schemas import HiveQuestionResponseSchema
+        # 4. Filtrar preguntas: Si la pregunta base del apiario está activa, Maya DEBE leerla.
+        # Priorizamos el estado 'is_active' de la pregunta del apiario (aq).
+        active_questions = []
+        for hq in questions:
+            if hq.apiary_question and hq.apiary_question.is_active:
+                # Si la pregunta base está activa en el apiario, la incluimos
+                active_questions.append(hq)
         
-        serialized_questions = [
-            HiveQuestionResponseSchema.model_validate(hq).model_dump(mode='json', by_alias=True) 
-            for hq in active_questions
-        ]
+        # 5. APLANAR y mapear campos para el frontend (Maya Voz espera estructura plana)
+        serialized_questions = []
+        for hq in active_questions:
+            aq = hq.apiary_question
+            
+            # Convertir opciones de String (del DB) a List para el frontend
+            opciones_list = []
+            if aq.options:
+                opciones_list = [o.strip() for o in aq.options.split(',') if o.strip() and o.strip() != '{}']
+            
+            serialized_questions.append({
+                "id": str(hq.id), # ID de la relación HiveQuestion para guardar respuestas
+                "question_text": aq.question,
+                "question_type": aq.type,
+                "tipo": aq.type, # Compatibilidad
+                "opciones": opciones_list, # Compatibilidad
+                "options": aq.options,
+                "is_required": aq.is_required,
+                "obligatoria": aq.is_required,
+                "min": aq.min_value,
+                "max": aq.max_value,
+                "min_value": aq.min_value,
+                "max_value": aq.max_value,
+                "category": aq.category,
+                "display_order": hq.display_order
+            })
         
-        current_app.logger.info(f"Maya Voz: Se enviarán {len(serialized_questions)} preguntas activas.")
+        current_app.logger.info(f"Maya Voz: Se enviarán {len(serialized_questions)} preguntas activas (sincronizadas).")
         return jsonify({"preguntas": serialized_questions}), 200
     except Exception as e:
-        current_app.logger.error(f"Maya Voz Error: {str(e)}")
+        import traceback
+        current_app.logger.error(f"Maya Voz Error: {str(e)}\n{traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
 
-@maya_voice_bp.route('/guardar-respuestas', methods=['POST', 'OPTIONS'])
+@ai_agent_bp.route('/maya/guardar-respuestas', methods=['POST', 'OPTIONS'])
 @inject
 def guardar_respuestas(
     batch_save_use_case = Provide[MainContainer.create_answers_batch_use_case]
