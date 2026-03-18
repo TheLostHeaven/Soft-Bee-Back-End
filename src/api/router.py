@@ -23,8 +23,8 @@ class FeatureRouter:
             module = __import__(module_name, fromlist=[''])
 
             # 2. Definir los nombres posibles de los Blueprints en el sistema
-            # Se ha restaurado esta lista que se perdió en la refactorización anterior
-            blueprint_names = [
+            # Usamos un set para evitar duplicados y errores de registro doble
+            potential_names = {
                 f'{feature_name}_bp',
                 'auth_bp',
                 'api_bp',
@@ -32,23 +32,27 @@ class FeatureRouter:
                 'beehive_bp',
                 'inventory_bp',
                 'ai_agent_bp',
-                'maya_voice_bp', # Soporte para el nuevo blueprint de Maya Voz
+                'maya_voice_bp',
                 'questions_bp',
                 'answers_bp',
                 'treatments_bp',
                 'bp',
-            ]
+            }
 
             # 3. Buscar y registrar todos los blueprints que existan en el módulo
             registered_any = False
-            for bp_name in blueprint_names:
+            for bp_name in potential_names:
                 if hasattr(module, bp_name):
                     found_bp = getattr(module, bp_name)
-                    if found_bp: # Verificar que el objeto existe
-                        self.app.register_blueprint(found_bp)
-                        registered_any = True
-                        # Debug print solicitado para verificar registro
-                        print(f"✅ Blueprint registrado: {feature_name} -> {bp_name}")
+                    if found_bp and isinstance(found_bp, Blueprint):
+                        # Verificar si ya está registrado para evitar AssertionError
+                        if found_bp.name not in self.app.blueprints:
+                            try:
+                                self.app.register_blueprint(found_bp)
+                                registered_any = True
+                                print(f"✅ Blueprint registrado: {feature_name} -> {bp_name} ({found_bp.name})")
+                            except Exception as e:
+                                print(f"⚠️ Error registrando blueprint {bp_name} en {feature_name}: {str(e)}")
             
             # 4. Confirmar registro exitoso
             if registered_any:
