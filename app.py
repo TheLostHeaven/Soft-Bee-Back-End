@@ -31,16 +31,18 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     # Dynamic CORS configuration
     origins = os.environ.get('CORS_ORIGINS')
     if origins:
-        origins_list = origins.split(',')
-        CORS(app, resources={r"/api/*": {
+        # Limpiar espacios en blanco de cada origen para evitar fallos de coincidencia
+        origins_list = [o.strip() for o in origins.split(',')]
+        CORS(app, resources={r"/api/.*": {
             "origins": origins_list,
             "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "Accept"],
-            "supports_credentials": True
+            "supports_credentials": True,
+            "expose_headers": ["Content-Type", "Authorization"]
         }})
     else:
         # Default CORS configuration if the environment variable is not set
-        CORS(app, resources={r"/api/*": {"origins": "*"}})
+        CORS(app, resources={r"/api/.*": {"origins": "*"}})
 
     file_handler = FileHandler()
     file_handler.init_app(app)
