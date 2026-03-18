@@ -32,7 +32,6 @@ class FeatureRouter:
                 'beehive_bp',
                 'inventory_bp',
                 'ai_agent_bp',
-                'maya_voice_bp', # Soporte para el nuevo blueprint de Maya Voz
                 'questions_bp',
                 'answers_bp',
                 'treatments_bp',
