@@ -7,11 +7,13 @@ from src.features.ai_agent.application.dto.ai_prompt_dto import AIPromptDTO
 from src.features.ai_agent.application.use_cases.process_ai_prompt import ProcessAIPromptUseCase
 from src.core.dependencies.containers import MainContainer
 
-# Blueprint unificado para la feature AI Agent (Maya)
-# Usamos un prefijo base /api/v1 para ser consistente con el resto de la app
-ai_agent_bp = Blueprint('ai_agent_v1', __name__, url_prefix='/api/v1')
+# Maya Bot (Chat IA) - Mantiene su prefijo original /api/v1/ai
+ai_agent_bp = Blueprint('ai_agent_v1', __name__, url_prefix='/api/v1/ai')
 
-@ai_agent_bp.route('/ai/ask', methods=['POST', 'OPTIONS'])
+# Maya Voz (Monitoreo Estructurado) - Nuevo prefijo específico /api/v1/maya
+maya_voice_bp = Blueprint('maya_voice_v1', __name__, url_prefix='/api/v1/maya')
+
+@ai_agent_bp.route('/ask', methods=['POST', 'OPTIONS'])
 @inject
 def ask_ai(
     process_use_case: ProcessAIPromptUseCase = Provide[MainContainer.process_ai_prompt_use_case]
@@ -34,7 +36,7 @@ def ask_ai(
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@ai_agent_bp.route('/maya/iniciar-monitoreo', methods=['POST', 'OPTIONS'])
+@maya_voice_bp.route('/iniciar-monitoreo', methods=['POST', 'OPTIONS'])
 @inject
 def iniciar_monitoreo(
     get_questions_use_case = Provide[MainContainer.get_hive_questions_use_case],
@@ -63,18 +65,15 @@ def iniciar_monitoreo(
             return jsonify({"error": "Beehive not found"}), 404
             
         # 2. SINCRONIZAR: Asegurar que la colmena tenga las preguntas del apiario actualizadas
-        # Esto garantiza que si el usuario añade preguntas "a nivel general", Maya las tome.
         initialize_hive_questions_use_case.execute(hive_uuid, hive.apiary_id)
         
         # 3. Obtener preguntas asignadas a la colmena (ahora ya sincronizadas)
         questions = get_questions_use_case.execute(hive_uuid)
         
         # 4. Filtrar preguntas: Si la pregunta base del apiario está activa, Maya DEBE leerla.
-        # Priorizamos el estado 'is_active' de la pregunta del apiario (aq).
         active_questions = []
         for hq in questions:
             if hq.apiary_question and hq.apiary_question.is_active:
-                # Si la pregunta base está activa en el apiario, la incluimos
                 active_questions.append(hq)
         
         # 5. APLANAR y mapear campos para el frontend (Maya Voz espera estructura plana)
@@ -88,11 +87,11 @@ def iniciar_monitoreo(
                 opciones_list = [o.strip() for o in aq.options.split(',') if o.strip() and o.strip() != '{}']
             
             serialized_questions.append({
-                "id": str(hq.id), # ID de la relación HiveQuestion para guardar respuestas
+                "id": str(hq.id),
                 "question_text": aq.question,
                 "question_type": aq.type,
-                "tipo": aq.type, # Compatibilidad
-                "opciones": opciones_list, # Compatibilidad
+                "tipo": aq.type,
+                "opciones": opciones_list,
                 "options": aq.options,
                 "is_required": aq.is_required,
                 "obligatoria": aq.is_required,
@@ -111,7 +110,7 @@ def iniciar_monitoreo(
         current_app.logger.error(f"Maya Voz Error: {str(e)}\n{traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
 
-@ai_agent_bp.route('/maya/guardar-respuestas', methods=['POST', 'OPTIONS'])
+@maya_voice_bp.route('/guardar-respuestas', methods=['POST', 'OPTIONS'])
 @inject
 def guardar_respuestas(
     batch_save_use_case = Provide[MainContainer.create_answers_batch_use_case]
@@ -125,15 +124,10 @@ def guardar_respuestas(
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        # Extraemos solo las respuestas para validar contra el esquema Batch
         answers_only = {"answers": data.get('answers', [])}
         
         from src.features.answer.presentation.api.v1.schemas.answer_schemas import BatchCreateAnswersRequestSchema
-        
-        # Validación del esquema estándar
         schema = BatchCreateAnswersRequestSchema(**answers_only)
-        
-        # Convertir a formato que espera el caso de uso
         answers_data = [item.model_dump() for item in schema.answers]
         
         hive_id = data.get('hive_id')
