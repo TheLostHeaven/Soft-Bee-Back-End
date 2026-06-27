@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
     libpq-dev \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos de requirements
@@ -31,12 +32,11 @@ COPY . .
 # Crear directorio para logs
 RUN mkdir -p logs
 
-# Copiar y dar permisos al script de entrada
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# Dar permisos al script de entrada (ya copiado con COPY . .)
+RUN dos2unix /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
 # Exponer el puerto
 EXPOSE 5000
 
 # Usar el script de entrada
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

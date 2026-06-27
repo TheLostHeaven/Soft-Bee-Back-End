@@ -59,6 +59,7 @@ docker-compose*.yml
 
 # Scripts
 *.sh
+!docker-entrypoint.sh
 
 # Otros
 .DS_Store
