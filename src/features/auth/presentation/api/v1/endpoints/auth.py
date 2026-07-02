@@ -17,6 +17,7 @@ from src.features.auth.application.dto.reset_password_dto import (
 # Importar casos de uso existentes
 from src.features.auth.application.use_cases.login_user import LoginUserUseCase
 from src.features.auth.application.use_cases.register_user import RegisterUserUseCase
+from src.features.auth.application.errors import AuthErrorCode, build_auth_error
 # from src.features.auth.application.use_cases.refresh_token import RefreshTokenUseCase
 # from src.features.auth.application.use_cases.logout_user import LogoutUserUseCase
 # from src.features.auth.application.use_cases.verify_token import VerifyTokenUseCase
@@ -48,28 +49,46 @@ def login(
     login_use_case: LoginUserUseCase = Provide[MainContainer.login_use_case]  # <-- Añadir DI
 ):
     try:
-        schema = LoginSchema(**request.json)
+        data = request.get_json(silent=True) or {}
+        email = (data.get('email') or '').strip()
+        password = data.get('password') or ''
+
+        # 1. Validar campos vacíos antes de cualquier otra validación
+        if not email or not password:
+            payload, status = build_auth_error(AuthErrorCode.EMPTY_FIELDS)
+            return jsonify(payload), status
+
+        # 2. Validar formato (correo válido, etc.) vía schema
+        try:
+            schema = LoginSchema(email=email, password=password)
+        except ValidationError:
+            payload, status = build_auth_error(AuthErrorCode.INVALID_EMAIL)
+            return jsonify(payload), status
+
+        # 3. Ejecutar caso de uso
         login_dto = LoginRequestDTO(
             email=schema.email,
             password=schema.password
         )
         result, error = login_use_case.execute(login_dto)
+
         if error:
-            return {"error": error}, 401
+            payload, status = build_auth_error(error)
+            return jsonify(payload), status
+
         if isinstance(result, dict):
             return jsonify(result), 200
         elif hasattr(result, '__dict__'):
             return jsonify(result.__dict__), 200
         else:
             return jsonify({"result": str(result)}), 200
-            
-    except ValidationError as e:
-        return jsonify({"errors": e.errors()}), 400
+
     except Exception as e:
         print(f"Login endpoint error: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({"error": "Internal server error"}), 500
+        payload, status = build_auth_error(AuthErrorCode.SERVER_ERROR)
+        return jsonify(payload), status
 
 @auth_bp.route('/register', methods=['POST'])
 @inject
