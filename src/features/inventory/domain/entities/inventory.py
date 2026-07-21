@@ -15,3 +15,4 @@ class Inventory:
     minimum_stock: int
     created_at: datetime
     updated_at: datetime
+    category: str = "General"

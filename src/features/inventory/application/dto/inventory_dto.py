@@ -8,6 +8,7 @@ class InventoryDTO(BaseModel):
     id: UUID
     apiary_id: UUID
     name: str
+    category: str = "General"
     quantity: int
     unit: str
     description: Optional[str]
@@ -22,6 +23,7 @@ class InventoryDTO(BaseModel):
 class CreateInventoryDTO(BaseModel):
     apiary_id: UUID
     name: str
+    category: str = "General"
     quantity: int
     unit: str
     description: Optional[str]
@@ -30,6 +32,7 @@ class CreateInventoryDTO(BaseModel):
 
 class UpdateInventoryDTO(BaseModel):
     name: Optional[str] = None
+    category: Optional[str] = None
     quantity: Optional[int] = None
     unit: Optional[str] = None
     description: Optional[str] = None

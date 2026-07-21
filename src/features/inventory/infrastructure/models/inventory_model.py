@@ -20,6 +20,7 @@ class InventoryModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     apiary_id = Column(UUID(as_uuid=True), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(100), nullable=False)
+    category = Column(String(50), nullable=False, default="General")
     quantity = Column(Integer, nullable=False, default=0)
     unit = Column(String(50), nullable=False, default="unit")
     description = Column(Text)
