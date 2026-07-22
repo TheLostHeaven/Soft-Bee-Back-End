@@ -14,7 +14,7 @@ DATABASE_DIR = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     MAIL_SERVER = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    MAIL_PORT = int(os.getenv("SMTP_PORT", 587))
+    MAIL_PORT = int(os.getenv("SMTP_PORT") or 587)
     MAIL_USERNAME = os.getenv("SMTP_USER")
     MAIL_PASSWORD = os.getenv("SMTP_PASSWORD")
     MAIL_USE_TLS = True
@@ -34,11 +34,11 @@ class Config:
         "jwt_algorithm": os.getenv("ALGORITHM", "HS256"),
         "jwt_issuer": os.getenv("JWT_ISSUER", "softbee-api"),
         "jwt_audience": os.getenv("JWT_AUDIENCE", "softbee-app"),
-        "password_argon2_time_cost": int(os.getenv("ARGON2_TIME_COST", 2)),
-        "password_argon2_memory_cost": int(os.getenv("ARGON2_MEMORY_COST", 512000)),
-        "password_argon2_parallelism": int(os.getenv("ARGON2_PARALLELISM", 2)),
-        "password_argon2_hash_len": int(os.getenv("ARGON2_HASH_LEN", 32)),
-        "password_argon2_salt_len": int(os.getenv("ARGON2_SALT_LEN", 16)),
+        "password_argon2_time_cost": int(os.getenv("ARGON2_TIME_COST") or 2),
+        "password_argon2_memory_cost": int(os.getenv("ARGON2_MEMORY_COST") or 512000),
+        "password_argon2_parallelism": int(os.getenv("ARGON2_PARALLELISM") or 2),
+        "password_argon2_hash_len": int(os.getenv("ARGON2_HASH_LEN") or 32),
+        "password_argon2_salt_len": int(os.getenv("ARGON2_SALT_LEN") or 16),
     }
 
     AI = {
@@ -51,8 +51,8 @@ class Config:
 
     JWT_SECRET_KEY = AUTH["jwt_secret_key"]
     JWT_ALGORITHM = AUTH["jwt_algorithm"]  # <-- Esto ahora tiene valor
-    JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_SESSION", 1440))  # 24 horas
-    JWT_RESET_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_EMAIL", 30))  # 30 minutos
+    JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_SESSION") or 1440)  # 24 horas
+    JWT_RESET_TOKEN_EXPIRES = int(os.getenv("EXPIRES_TOKEN_EMAIL") or 30)  # 30 minutos
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
     BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")
 
