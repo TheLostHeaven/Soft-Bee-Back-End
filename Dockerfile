@@ -1,17 +1,18 @@
 # Usar imagen base de Python
 FROM python:3.11-slim
 
-# Establecer variables de entorno
+# Establecer variables de entorno para optimización
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PORT=5000
 
 # Crear directorio de trabajo
 WORKDIR /app
 
 # Instalar dependencias del sistema necesarias para psycopg2
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     postgresql-client \
     libpq-dev \
