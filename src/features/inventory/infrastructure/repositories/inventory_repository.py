@@ -44,7 +44,7 @@ class InventoryRepositoryImpl(InventoryRepository):
         )
         if model:
             model.name = inventory.name
-            model.category = inventory.category
+            model.category = getattr(inventory, "category", None) or model.category
             model.quantity = inventory.quantity
             model.unit = inventory.unit
             model.description = inventory.description

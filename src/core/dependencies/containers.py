@@ -88,6 +88,17 @@ config_obj = get_config()
 class MainContainer(containers.DeclarativeContainer):
     """Contenedor principal"""
 
+    # Wiring automatico: al instanciar el contenedor se conectan los modulos
+    # de features para que @inject/Provide se resuelvan en los endpoints.
+    wiring_config = containers.WiringConfiguration(modules=[
+        "src.features.auth.presentation.api.v1.endpoints.auth",
+        "src.features.auth.presentation.api.v1.dependencies.auth_deps",
+        "src.features.user.presentation.api.v1.endpoints.users",
+        "src.features.inventory.presentation.api.v1.endpoints.inventory_endpoints",
+        "src.features.apiaries.presentation.api.v1.dependencies.apiary_dependencies",
+        "src.features.ai_agent.presentation.api.v1.endpoints.ai_agent",
+    ])
+
     config = providers.Configuration()
     db_session = providers.Dependency()
 

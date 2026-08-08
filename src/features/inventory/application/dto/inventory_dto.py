@@ -10,7 +10,7 @@ class InventoryDTO(BaseModel):
     id: UUID
     apiary_id: UUID
     name: str
-    category: str
+    category: str = "General"
     quantity: int
     unit: str
     description: Optional[str]
