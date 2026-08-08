@@ -9,7 +9,7 @@ def seed_base_questions(app):
         {
             "question_id": "presencia_reina",
             "category": "Salud",
-            "question": "¿Se observó a la reina",
+            "question": "¿Se observó a la reina?",
             "type": "opciones",
             "is_required": True,
             "options": "Sí,No",
@@ -19,7 +19,7 @@ def seed_base_questions(app):
         {
             "question_id": "enfermedades",
             "category": "Salud",
-            "question": "¿Signos de enfermedades (Loque, Varroa, etc.)",
+            "question": "¿Signos de enfermedades (Loque, Varroa, etc.)?",
             "type": "texto",
             "is_required": False,
             "score": 9, # Cambiado a entero según tu tabla
@@ -49,7 +49,7 @@ def seed_base_questions(app):
         {
             "question_id": "estado_general",
             "category": "Estado de la Colmena",
-            "question": "¿Cuál es el estado general de la colmena",
+            "question": "¿Cuál es el estado general de la colmena?",
             "type": "opciones",
             "is_required": True,
             "options": "Excelente,Bueno,Regular,Malo",
@@ -59,7 +59,7 @@ def seed_base_questions(app):
         {
             "question_id": "necesita_alimentacion",
             "category": "Alimentación",
-            "question": "¿Necesita alimentación suplementaria",
+            "question": "¿Necesita alimentación suplementaria?",
             "type": "opciones",
             "is_required": True,
             "options": "Sí,No",
@@ -69,7 +69,7 @@ def seed_base_questions(app):
         {
             "question_id": "celdas_reales",
             "category": "Salud",
-            "question": "¿Presencia de celdas reales",
+            "question": "¿Presencia de celdas reales?",
             "type": "opciones",
             "is_required": True,
             "options": "Sí,No",
@@ -90,7 +90,7 @@ def seed_base_questions(app):
         {
             "question_id": "espacio_disponible",
             "category": "Mantenimiento",
-            "question": "¿Necesita más espacio (alzas)",
+            "question": "¿Necesita más espacio (alzas)?",
             "type": "opciones",
             "is_required": True,
             "options": "Sí,No",

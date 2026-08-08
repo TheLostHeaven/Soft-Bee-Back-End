@@ -25,6 +25,10 @@ class QuestionRepository(ABC):
     def update_apiary_question(self, question: ApiaryQuestion) -> ApiaryQuestion:
         pass
 
+    @abstractmethod
+    def delete_apiary_question(self, question_id: UUID) -> bool:
+        pass
+
     # Hive Questions
     @abstractmethod
     def create_hive_question(self, question: HiveQuestion) -> HiveQuestion:

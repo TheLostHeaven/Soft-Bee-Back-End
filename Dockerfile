@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     postgresql-client \
     libpq-dev \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos de requirements
@@ -32,8 +33,11 @@ COPY . .
 # Crear directorio para logs
 RUN mkdir -p logs
 
-# Exponer el puerto (Railway usa la variable PORT)
-EXPOSE ${PORT}
+# Dar permisos al script de entrada (ya copiado con COPY . .)
+RUN dos2unix /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
-# Comando optimizado para Railway con menos workers (reduce consumo de RAM)
-CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --worker-class gthread --timeout 120 --max-requests 1000 --max-requests-jitter 50 --access-logfile - --error-logfile - index:app
+# Exponer el puerto
+EXPOSE 5000
+
+# Usar el script de entrada
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

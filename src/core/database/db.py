@@ -9,7 +9,7 @@ from flask_migrate import Migrate
 # Instancia global de SQLAlchemy para migraciones
 db = SQLAlchemy()
 migrate = Migrate()
-Base = declarative_base()
+Base = db.Model
 
 def get_db() -> Session:
     """Retorna la sesión de SQLAlchemy gestionada por Flask-SQLAlchemy"""
@@ -87,17 +87,24 @@ def init_app(app):
         print(f"   Backend: {app.config.get('BASE_URL')}")
         print(f"🐛 Debug mode: {app.config.get('DEBUG', False)}")
 
+        # IMPORTANTE: Importar todos los modelos aquí para que SQLAlchemy y Alembic los detecten
+        try:
+            from src.features.auth.infrastructure.models.user_model import UserModel
+            from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
+            from src.features.beehive.infrastructure.models.beehive_model import BeehiveModel
+            from src.features.inventory.infrastructure.models.inventory_model import InventoryModel
+            from src.features.questions.infrastructure.models.question_models import ApiaryQuestionModel, HiveQuestionModel
+            from src.features.answer.infrastructure.models.answer_models import HiveAnswerModel
+            from src.features.treatments.infrastructure.models.treatment_model import TreatmentModel, TreatmentFollowupModel
+            print("📦 Modelos de dominio cargados correctamente")
+        except ImportError as e:
+            print(f"⚠️ Error al importar algunos modelos: {e}")
+
         # Solo crear tablas automáticamente si no existen migraciones
         migrations_dir = os.path.join(app.root_path, 'migrations')
         if not os.path.exists(migrations_dir):
             print(" No se encontraron migraciones, creando tablas automáticamente...")
             try:
-                # Importar modelos para que SQLAlchemy los detecte
-                from src.features.auth.infrastructure.models.user_model import UserModel
-                from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
-                from src.features.questions.infrastructure.models.question_models import ApiaryQuestionModel
-                from src.features.answer.infrastructure.models.answer_models import HiveAnswerModel
-                
                 db.create_all()
                 print("✅ Tablas de base de datos inicializadas correctamente")
             except Exception as e:

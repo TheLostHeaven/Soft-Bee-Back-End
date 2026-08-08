@@ -2,6 +2,7 @@
 import logging
 from uuid import UUID
 from src.features.auth.application.dto.auth_dto import LoginRequestDTO
+from src.features.auth.application.errors import AuthErrorCode
 from ...application.interfaces.repositories.user_repository import IUserRepository
 from ...application.interfaces.services.token_service import ITokenService
 from src.features.auth.application.interfaces.services.password_service import IPasswordService
@@ -31,14 +32,19 @@ class LoginUserUseCase:
             
             if not user:
                 logger.warning(f"User not found: {request_dto.email}")
-                return None, "Invalid email or password"
+                return None, AuthErrorCode.EMAIL_NOT_REGISTERED
             
-            # 2. Verificar si está activo
+            # 2. Verificar si la cuenta está desactivada
             if not user.is_active:
                 logger.warning(f"User not active: {request_dto.email}")
-                return None, "Account is not active"
+                return None, AuthErrorCode.ACCOUNT_DISABLED
+
+            # 3. Verificar si la cuenta está bloqueada por intentos fallidos
+            if user.is_locked():
+                logger.warning(f"User locked: {request_dto.email}")
+                return None, AuthErrorCode.ACCOUNT_LOCKED
             
-            # 3. Verificar contraseña
+            # 4. Verificar contraseña
             password_valid = self.password_service.verify_password(
                 request_dto.password,
                 user.hashed_password
@@ -46,9 +52,26 @@ class LoginUserUseCase:
             
             if not password_valid:
                 logger.warning(f"Invalid password for: {request_dto.email}")
-                return None, "Invalid email or password"
+                # Registrar el intento fallido y persistirlo para el bloqueo
+                user.login_failed()
+                try:
+                    self.user_repository.save(user)
+                except Exception:
+                    logger.warning("No se pudo persistir el intento fallido de login")
+                # Si este intento provocó el bloqueo, informarlo explícitamente
+                if user.is_locked():
+                    return None, AuthErrorCode.ACCOUNT_LOCKED
+                return None, AuthErrorCode.INVALID_PASSWORD
+
+            # 5. Login correcto: reiniciar contador de intentos fallidos si aplica
+            if user.failed_login_attempts:
+                user.failed_login_attempts = 0
+                try:
+                    self.user_repository.save(user)
+                except Exception:
+                    logger.warning("No se pudo reiniciar el contador de intentos fallidos")
             
-            # 4. Actualizar último login - Pasar el user.id directamente (ya es UUID)
+            # 6. Actualizar último login - Pasar el user.id directamente (ya es UUID)
             self.user_repository.update_last_login(user.id)
             
             # 5. Preparar datos para tokens
@@ -111,4 +134,4 @@ class LoginUserUseCase:
             logger.error(f"Error in LoginUserUseCase: {str(e)}", exc_info=True)
             import traceback
             traceback.print_exc()
-            return None, "Internal server error"
+            return None, AuthErrorCode.SERVER_ERROR

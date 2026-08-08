@@ -53,6 +53,8 @@ from src.features.questions.application.use_cases.assign_question_to_hive import
 from src.features.questions.application.use_cases.create_apiary_question import CreateApiaryQuestion
 from src.features.questions.application.use_cases.get_apiary_questions import GetApiaryQuestions
 from src.features.questions.application.use_cases.update_apiary_question import UpdateApiaryQuestion
+from src.features.questions.application.use_cases.delete_apiary_question import DeleteApiaryQuestion
+from src.features.questions.application.use_cases.get_default_questions import GetDefaultQuestions
 
 from src.features.answer.infrastructure.repositories.sqlalchemy_answer_repository import SQLAlchemyAnswerRepository
 from src.features.answer.application.use_cases.create_answer import CreateAnswer
@@ -71,10 +73,31 @@ from src.features.ai_agent.infrastructure.services.ai_provider_registry import A
 from src.features.ai_agent.infrastructure.services.session_repository_impl import InMemoryAISessionRepository
 from src.features.ai_agent.application.use_cases.process_ai_prompt import ProcessAIPromptUseCase
 
+from src.features.reports.infrastructure.services.report_service_impl import ReportServiceImpl
+from src.features.reports.application.use_cases.generate_apiary_report import GenerateApiaryReport
+
+from src.features.statistics.infrastructure.repositories.statistics_repository_impl import StatisticsRepositoryImpl
+from src.features.statistics.application.use_cases.get_apiary_statistics import GetApiaryStatisticsUseCase
+from src.features.statistics.application.use_cases.get_beehive_health_trends import GetBeehiveHealthTrendsUseCase
+from src.features.statistics.application.use_cases.get_treatment_distribution import GetTreatmentDistributionUseCase
+from src.features.statistics.application.use_cases.get_inventory_levels import GetInventoryLevelsUseCase
+from src.features.statistics.application.use_cases.get_answer_score_trends import GetAnswerScoreTrendsUseCase
+
 config_obj = get_config()
 
 class MainContainer(containers.DeclarativeContainer):
     """Contenedor principal"""
+
+    # Wiring automatico: al instanciar el contenedor se conectan los modulos
+    # de features para que @inject/Provide se resuelvan en los endpoints.
+    wiring_config = containers.WiringConfiguration(modules=[
+        "src.features.auth.presentation.api.v1.endpoints.auth",
+        "src.features.auth.presentation.api.v1.dependencies.auth_deps",
+        "src.features.user.presentation.api.v1.endpoints.users",
+        "src.features.inventory.presentation.api.v1.endpoints.inventory_endpoints",
+        "src.features.apiaries.presentation.api.v1.dependencies.apiary_dependencies",
+        "src.features.ai_agent.presentation.api.v1.endpoints.ai_agent",
+    ])
 
     config = providers.Configuration()
     db_session = providers.Dependency()
@@ -204,6 +227,15 @@ class MainContainer(containers.DeclarativeContainer):
     update_apiary_question_use_case = providers.Factory(
         UpdateApiaryQuestion,
         question_repository=question_repository
+    )
+
+    delete_apiary_question_use_case = providers.Factory(
+        DeleteApiaryQuestion,
+        question_repository=question_repository
+    )
+
+    get_default_questions_use_case = providers.Factory(
+        GetDefaultQuestions
     )
 
     # Answer repository and use cases
@@ -418,5 +450,51 @@ class MainContainer(containers.DeclarativeContainer):
     process_ai_prompt_use_case = providers.Factory(
         ProcessAIPromptUseCase,
         provider_registry=ai_provider_registry,
-        session_repository=session_repository
+        session_repository=session_repository,
+        get_apiary_questions_use_case=get_apiary_questions_use_case,
+        get_hive_questions_use_case=get_hive_questions_use_case,
+        create_answer_use_case=create_answer_use_case,
+        get_all_beehives_use_case=get_all_beehives_by_apiary_id_use_case
+    )
+
+    # Reports feature
+    report_service = providers.Factory(
+        ReportServiceImpl,
+        db_session=db_session
+    )
+
+    generate_apiary_report_use_case = providers.Factory(
+        GenerateApiaryReport,
+        report_service=report_service
+    )
+
+    # Statistics feature
+    statistics_repository = providers.Factory(
+        StatisticsRepositoryImpl,
+        db=db_session
+    )
+
+    get_apiary_statistics_use_case = providers.Factory(
+        GetApiaryStatisticsUseCase,
+        repository=statistics_repository
+    )
+
+    get_beehive_health_trends_use_case = providers.Factory(
+        GetBeehiveHealthTrendsUseCase,
+        repository=statistics_repository
+    )
+
+    get_treatment_distribution_use_case = providers.Factory(
+        GetTreatmentDistributionUseCase,
+        repository=statistics_repository
+    )
+
+    get_inventory_levels_use_case = providers.Factory(
+        GetInventoryLevelsUseCase,
+        repository=statistics_repository
+    )
+
+    get_answer_score_trends_use_case = providers.Factory(
+        GetAnswerScoreTrendsUseCase,
+        repository=statistics_repository
     )

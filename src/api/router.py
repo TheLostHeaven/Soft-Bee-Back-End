@@ -18,7 +18,6 @@ class FeatureRouter:
             module_name = f"src.features.{feature_name}.presentation.api.v1.endpoints"
             module = __import__(module_name, fromlist=[''])
 
-
             # 2. Buscar blueprint
             blueprint_names = [
                 f'{feature_name}_bp',
@@ -30,6 +29,8 @@ class FeatureRouter:
                 'ai_agent_bp',
                 'questions_bp',
                 'answers_bp', # Added answers_bp
+                'reports_bp', # Added reports_bp
+                'statistics_bp', # Added statistics_bp
                 'bp',
             ]
             
@@ -40,6 +41,7 @@ class FeatureRouter:
                     found_bp = getattr(module, bp_name)
                     if found_bp: # Asegurarse de que no es None
                         blueprint = found_bp
+                        print(f"✅ Feature '{feature_name}': Blueprint '{bp_name}' encontrado")
                         break
             
             # 3. Registrar el blueprint
@@ -48,11 +50,14 @@ class FeatureRouter:
                 self.registered_features.append(feature_name)
                 return True
             else:
+                print(f"❌ Feature '{feature_name}': No se encontró blueprint. Atributos disponibles: {dir(module)}")
                 return False
                 
         except ImportError as e:
+            print(f"❌ Feature '{feature_name}': Error de importación - {str(e)}")
             return False
         except Exception as e:
+            print(f"❌ Feature '{feature_name}': Error - {str(e)}")
             import traceback
             traceback.print_exc()
             return False
