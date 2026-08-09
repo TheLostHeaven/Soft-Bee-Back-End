@@ -84,6 +84,12 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
         self.db_session.commit()
         return True
 
+    def exists_by_apiary_and_number(self, apiary_id: UUID, hive_number: int) -> bool:
+        return self.db_session.query(BeehiveModel).filter(
+            BeehiveModel.apiary_id == apiary_id,
+            BeehiveModel.hive_number == hive_number
+        ).first() is not None
+
     def _to_entity(self, model: BeehiveModel) -> Beehive:
         if not model:
             return None

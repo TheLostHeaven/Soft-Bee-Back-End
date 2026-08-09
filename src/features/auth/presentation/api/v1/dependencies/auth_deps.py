@@ -35,9 +35,10 @@ def token_required(
             
             token = parts[1]
             
-            # Verificar token
-            payload = jwt_service.verify_token(token)
-            if not payload:
+            # Decodificar y verificar token
+            try:
+                payload = jwt_service.decode_token(token)
+            except (ValueError, Exception):
                 return jsonify({"error": "Invalid or expired token"}), 401
             
             # Verificar tipo de token

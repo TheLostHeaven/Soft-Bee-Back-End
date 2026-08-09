@@ -5,6 +5,7 @@ from sqlalchemy import (
     TIMESTAMP,
     ForeignKey,
     Boolean,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 from src.core.database.db import Base
@@ -14,10 +15,13 @@ from sqlalchemy.sql import func
 
 class BeehiveModel(Base):
     __tablename__ = 'beehives'
+    __table_args__ = (
+        UniqueConstraint('apiary_id', 'hive_number', name='uq_apiary_hive_number'),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     apiary_id = Column(UUID(as_uuid=True), ForeignKey("apiaries.id", ondelete="CASCADE"), nullable=False)
-    hive_number = Column(Integer, nullable=False, autoincrement=True, unique=True)
+    hive_number = Column(Integer, nullable=False)
     activity_level = Column(Text, nullable=True)
     bee_population = Column(Text, nullable=True)
     food_frames = Column(Integer)

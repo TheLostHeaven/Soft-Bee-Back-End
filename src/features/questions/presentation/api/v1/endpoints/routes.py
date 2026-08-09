@@ -192,3 +192,75 @@ def delete_hive_question(id: str):
         return jsonify({}), HTTPStatus.NO_CONTENT
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+@questions_bp.route("/hive/<string:hive_id>/sync", methods=['POST', 'OPTIONS'])
+def sync_hive_questions(hive_id: str):
+    if request.method == 'OPTIONS': return '', 204
+    """
+    Sincroniza las preguntas de la colmena con las del apiario.
+    - Agrega preguntas activas del apiario que aún no estén asignadas a la colmena.
+    - Elimina asignaciones cuya pregunta de apiario ya no existe o fue desactivada.
+    Retorna el listado actualizado de preguntas de la colmena.
+    """
+    try:
+        from uuid import uuid4
+        from src.features.questions.domain.entities.question import HiveQuestion
+        from src.features.beehive.domain.exceptions.beehive_exceptions import BeehiveNotFoundException
+
+        hive_uuid = UUID(hive_id)
+
+        # Obtener la colmena para conocer su apiary_id
+        get_beehive = current_app.container.get_beehive_by_id_use_case()
+        try:
+            beehive = get_beehive.execute(hive_uuid)
+        except BeehiveNotFoundException:
+            return jsonify({"message": "Colmena no encontrada"}), HTTPStatus.NOT_FOUND
+
+        question_repo = current_app.container.question_repository()
+
+        # Obtener preguntas activas del apiario
+        apiary_questions = question_repo.get_apiary_questions_by_apiary_id(beehive.apiary_id)
+        active_apiary_question_ids = {aq.id for aq in apiary_questions if aq.is_active}
+
+        # Obtener preguntas ya asignadas a la colmena
+        existing_hive_questions = question_repo.get_hive_questions_by_hive_id(hive_uuid)
+        existing_apiary_question_ids = {hq.apiary_question_id for hq in existing_hive_questions}
+
+        # 1. Eliminar asignaciones cuya pregunta del apiario fue desactivada o eliminada
+        for hq in existing_hive_questions:
+            if hq.apiary_question_id not in active_apiary_question_ids:
+                question_repo.delete_hive_question(hq.id)
+
+        # 2. Agregar preguntas activas del apiario que no estén asignadas
+        max_order = max((hq.display_order for hq in existing_hive_questions), default=0)
+        new_hive_questions = []
+        for aq in apiary_questions:
+            if aq.is_active and aq.id not in existing_apiary_question_ids:
+                max_order += 1
+                hq = HiveQuestion(
+                    id=uuid4(),
+                    hive_id=hive_uuid,
+                    apiary_question_id=aq.id,
+                    display_order=max_order,
+                    is_active=True
+                )
+                new_hive_questions.append(hq)
+
+        if new_hive_questions:
+            question_repo.create_hive_questions_batch(new_hive_questions)
+
+        # Retornar listado actualizado
+        updated_questions = question_repo.get_hive_questions_by_hive_id(hive_uuid)
+        from src.features.questions.application.mappers.question_mapper import QuestionMapper
+        dtos = [QuestionMapper.hive_to_dto(q) for q in updated_questions]
+
+        return jsonify({
+            "message": "Sincronización completada",
+            "questions": [HiveQuestionResponseSchema.model_validate(q).model_dump(mode='json') for q in dtos],
+            "total_questions": len(dtos)
+        }), HTTPStatus.OK
+
+    except ValueError:
+        return jsonify({"message": "ID de colmena inválido"}), HTTPStatus.BAD_REQUEST
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
