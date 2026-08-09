@@ -31,6 +31,7 @@ class FeatureRouter:
                 'answers_bp', # Added answers_bp
                 'reports_bp', # Added reports_bp
                 'statistics_bp', # Added statistics_bp
+                'maya_bp', # Added maya_bp
                 'bp',
             ]
             

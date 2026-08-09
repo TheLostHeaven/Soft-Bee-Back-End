@@ -55,7 +55,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
     # Inicializar base de datos y migraciones
     init_app(app)
 
-    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'ai_agent', 'treatments', 'questions', 'answer', 'reports']
+    features_to_register = ['auth', 'apiaries', 'user', 'beehive', 'inventory', 'ai_agent', 'treatments', 'questions', 'answer', 'reports', 'maya']
     registered_features = register_features(app, features_to_register)
 
     # Wire the container to all feature endpoint modules
@@ -70,6 +70,7 @@ def create_app(config_name: str = None, features_config: dict = None, testing: b
         "src.features.questions.presentation.api.v1.endpoints.routes",
         "src.features.answer.presentation.api.v1.endpoints.routes",
         "src.features.reports.presentation.api.v1.endpoints.reports",
+        "src.features.maya.presentation.api.v1.endpoints.routes",
     ])
 
     print("\n" + "="*50)
