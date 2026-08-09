@@ -12,6 +12,10 @@ def iniciar_monitoreo():
     Inicia el monitoreo por voz para una colmena.
     Retorna las preguntas activas de la colmena para que el frontend
     las presente al usuario en modo de voz.
+    
+    Una pregunta se considera activa si está activa tanto a nivel
+    de la colmena (HiveQuestion.is_active) como a nivel del apiario
+    (ApiaryQuestion.is_active).
     """
     if request.method == 'OPTIONS':
         return '', 204
@@ -22,27 +26,35 @@ def iniciar_monitoreo():
             return jsonify({"error": "hive_id es requerido"}), HTTPStatus.BAD_REQUEST
 
         hive_id = data['hive_id']
+        hive_uuid = UUID(hive_id)
 
         # Obtener las preguntas de la colmena
         get_hive_questions = current_app.container.get_hive_questions_use_case()
-        questions = get_hive_questions.execute(UUID(hive_id))
+        questions = get_hive_questions.execute(hive_uuid)
 
         # Formatear las preguntas para el monitoreo por voz
+        # Una pregunta se considera activa si:
+        # 1. HiveQuestion.is_active es True (activa a nivel colmena)
+        # 2. ApiaryQuestion.is_active es True (activa a nivel apiario)
         formatted_questions = []
         for q in questions:
             if not q.is_active:
                 continue
+            if not q.apiary_question:
+                continue
+            if not q.apiary_question.is_active:
+                continue
 
             question_data = {
                 "hive_question_id": str(q.id),
-                "question": q.apiary_question.question if q.apiary_question else "",
-                "category": q.apiary_question.category if q.apiary_question else "",
-                "type": q.apiary_question.type if q.apiary_question else "text",
+                "question": q.apiary_question.question,
+                "category": q.apiary_question.category,
+                "type": q.apiary_question.type,
                 "display_order": q.display_order,
-                "is_required": q.apiary_question.is_required if q.apiary_question else False,
-                "options": q.apiary_question.options if q.apiary_question else None,
-                "min_value": q.apiary_question.min_value if q.apiary_question else None,
-                "max_value": q.apiary_question.max_value if q.apiary_question else None,
+                "is_required": q.apiary_question.is_required,
+                "options": q.apiary_question.options,
+                "min_value": q.apiary_question.min_value,
+                "max_value": q.apiary_question.max_value,
             }
             formatted_questions.append(question_data)
 

@@ -8,7 +8,7 @@ from src.features.beehive.application.use_cases.delete_beehive import DeleteBeeh
 from src.features.beehive.presentation.api.v1.schemas.beehive_schemas import (
     BeehiveResponseSchema, CreateBeehiveRequestSchema, UpdateBeehiveRequestSchema
 )
-from src.features.beehive.domain.exceptions.beehive_exceptions import BeehiveNotFoundException
+from src.features.beehive.domain.exceptions.beehive_exceptions import BeehiveNotFoundException, DuplicateHiveNumberException
 from pydantic import ValidationError
 from uuid import UUID
 
@@ -27,6 +27,8 @@ def create_beehive_endpoint():
         return jsonify(BeehiveResponseSchema.model_validate(beehive_dto).model_dump()), HTTPStatus.CREATED
     except ValidationError as e:
         return jsonify({"message": "Validation Error", "errors": e.errors()}), HTTPStatus.UNPROCESSABLE_ENTITY
+    except DuplicateHiveNumberException as e:
+        return jsonify({"message": str(e)}), HTTPStatus.CONFLICT
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
