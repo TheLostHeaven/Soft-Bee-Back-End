@@ -21,12 +21,24 @@ from src.features.inventory.application.use_cases.get_inventory_summary_use_case
 from src.features.inventory.application.use_cases.adjust_inventory_use_case import (
     AdjustInventoryUseCase,
 )
+from src.features.inventory.application.use_cases.record_movement_use_case import (
+    RecordMovementUseCase,
+)
+from src.features.inventory.application.use_cases.get_movements_by_inventory_use_case import (
+    GetMovementsByInventoryUseCase,
+)
 from src.features.inventory.application.dto.inventory_dto import (
     CreateInventoryDTO,
     UpdateInventoryDTO,
     AdjustInventoryDTO,
 )
+from src.features.inventory.application.dto.inventory_movement_dto import (
+    CreateMovementDTO,
+)
 from src.features.inventory.application.mappers.inventory_mapper import InventoryMapper
+from src.features.inventory.application.mappers.inventory_movement_mapper import (
+    InventoryMovementMapper,
+)
 from src.features.inventory.domain.exceptions.inventory_exceptions import (
     InventoryNotFoundError,
     InvalidInventoryAdjustmentError,
@@ -80,39 +92,45 @@ def create_inventory(
 @inventory_bp.route("/movement", methods=["POST", "OPTIONS"])
 @inject
 def record_movement(
-    adjust_use_case: AdjustInventoryUseCase = Provide[
-        MainContainer.inventory_container.adjust_inventory_use_case
+    record_movement_use_case: RecordMovementUseCase = Provide[
+        MainContainer.inventory_container.record_movement_use_case
     ],
 ):
-    """Endpoint para registrar movimientos (entrada/salida)"""
+    """Endpoint para registrar movimientos (entrada/salida) con log persistido"""
     if request.method == "OPTIONS":
         return "", 204
     try:
         data = request.get_json()
-        # El frontend envía 'inventory_id', 'movement_type', 'quantity'
-        inv_id = UUID(data.get('inventory_id'))
-        qty = int(data.get('quantity'))
-        mov_type = data.get('movement_type')
-        
-        # Si es salida, la cantidad debe ser negativa para el ajuste
-        adjustment = qty if mov_type == 'entry' else -qty
-        
-        dto = AdjustInventoryDTO(adjustment_amount=adjustment)
-        inventory = adjust_use_case.execute(inv_id, dto)
-        
-        return jsonify(InventoryMapper.to_dto(inventory).model_dump(mode='json')), 201
+        dto = CreateMovementDTO(
+            inventory_id=UUID(data.get("inventory_id")),
+            movement_type=data.get("movement_type"),
+            quantity=int(data.get("quantity")),
+            notes=data.get("notes"),
+        )
+        movement = record_movement_use_case.execute(dto)
+        return jsonify(InventoryMovementMapper.to_dto(movement).model_dump(mode='json')), 201
+    except InventoryNotFoundError as e:
+        return jsonify({"message": str(e)}), HTTPStatus.NOT_FOUND
+    except InvalidInventoryAdjustmentError as e:
+        return jsonify({"message": str(e)}), HTTPStatus.BAD_REQUEST
     except Exception as e:
-        return jsonify({"message": str(e)}), 400
+        return jsonify({"message": str(e)}), HTTPStatus.BAD_REQUEST
 
 
 @inventory_bp.route("/<uuid:inventory_id>/movements", methods=["GET", "OPTIONS"])
 @inject
-def get_movements(inventory_id: UUID):
-    """Endpoint para obtener historial (simulado por ahora si no hay tabla de logs)"""
+def get_movements(
+    inventory_id: UUID,
+    get_movements_use_case: GetMovementsByInventoryUseCase = Provide[
+        MainContainer.inventory_container.get_movements_by_inventory_use_case
+    ],
+):
+    """Endpoint para obtener historial de movimientos de un item de inventario"""
     if request.method == "OPTIONS":
         return "", 204
-    # Por ahora devolvemos una lista vacía para evitar el 404/CORS error
-    return jsonify([]), 200
+    movements = get_movements_use_case.execute(inventory_id)
+    dtos = [InventoryMovementMapper.to_dto(m) for m in movements]
+    return jsonify([dto.model_dump(mode='json') for dto in dtos]), 200
 
 
 @inventory_bp.route("/<uuid:inventory_id>", methods=["PUT"])
