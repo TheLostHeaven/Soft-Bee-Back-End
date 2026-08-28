@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, ForeignKey, func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.dialects.postgresql import UUID
 from src.core.database.db import Base
 import uuid
@@ -19,4 +19,11 @@ class InventoryMovementModel(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now())
 
-    inventory = relationship("InventoryModel", backref="movements")
+    inventory = relationship(
+        "InventoryModel",
+        backref=backref(
+            "movements",
+            cascade="all, delete-orphan",
+            passive_deletes=True,
+        ),
+    )
