@@ -18,7 +18,7 @@ from src.features.auth.application.dto.reset_password_dto import (
 from src.features.auth.application.use_cases.login_user import LoginUserUseCase
 from src.features.auth.application.use_cases.register_user import RegisterUserUseCase
 from src.features.auth.application.errors import AuthErrorCode, build_auth_error
-# from src.features.auth.application.use_cases.refresh_token import RefreshTokenUseCase
+from src.features.auth.application.use_cases.refresh_token import RefreshTokenUseCase
 # from src.features.auth.application.use_cases.logout_user import LogoutUserUseCase
 # from src.features.auth.application.use_cases.verify_token import VerifyTokenUseCase
 
@@ -31,7 +31,7 @@ from src.core.dependencies.containers import MainContainer
 
 # Importar schemas existentes
 from src.features.auth.presentation.api.v1.schemas.auth_schemas import (
-    LoginSchema, RegisterSchema, AuthResponseSchema
+    LoginSchema, RegisterSchema, AuthResponseSchema, RefreshTokenSchema
 )
 
 # Importar schemas para reset password
@@ -193,6 +193,54 @@ def reset_password(
             'success': False,
             'message': 'An error occurred while resetting your password'
         }), 500
+
+
+@auth_bp.route('/refresh', methods=['POST'])
+@inject
+def refresh(
+    refresh_token_use_case: RefreshTokenUseCase = Provide[MainContainer.refresh_token_use_case]
+):
+    """Endpoint para refrescar el access token usando un refresh token válido.
+
+    Body JSON esperado:
+        { "refresh_token": "<token>" }
+
+    Respuesta 200:
+        {
+            "access_token": "...",
+            "refresh_token": "...",   # nuevo (rotación)
+            "token_type": "bearer",
+            "expires_in": 3600
+        }
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+
+        # 1. Validar estructura del body
+        try:
+            schema = RefreshTokenSchema(**data)
+        except ValidationError:
+            payload, status = build_auth_error(AuthErrorCode.INVALID_TOKEN)
+            return jsonify(payload), status
+
+        # 2. Ejecutar caso de uso
+        request_dto = RefreshTokenRequestDTO(refresh_token=schema.refresh_token)
+        result, error = refresh_token_use_case.execute(request_dto)
+
+        if error:
+            payload, status = build_auth_error(error)
+            return jsonify(payload), status
+
+        if hasattr(result, 'model_dump'):
+            return jsonify(result.model_dump()), 200
+        elif hasattr(result, '__dict__'):
+            return jsonify(result.__dict__), 200
+        return jsonify(result), 200
+
+    except Exception as e:
+        current_app.logger.error(f"Refresh token endpoint error: {str(e)}", exc_info=True)
+        payload, status = build_auth_error(AuthErrorCode.SERVER_ERROR)
+        return jsonify(payload), status
 
 
 @auth_bp.route('/health', methods=['GET'])

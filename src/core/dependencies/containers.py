@@ -5,6 +5,7 @@ from src.features.user.infrastructure.repositories.user_repository_impl import U
 from src.features.auth.infrastructure.services.security.jwt_handler import JWTService
 from src.features.auth.application.use_cases.login_user import LoginUserUseCase
 from src.features.auth.application.use_cases.register_user import RegisterUserUseCase
+from src.features.auth.application.use_cases.refresh_token import RefreshTokenUseCase
 
 from src.features.auth.infrastructure.services.email_service_impl import EmailServiceImpl
 
@@ -157,6 +158,12 @@ class MainContainer(containers.DeclarativeContainer):
         RegisterUserUseCase,
         user_repository=auth_user_repository,
         password_service=password_service,
+        token_service=jwt_service
+    )
+
+    refresh_token_use_case = providers.Factory(
+        RefreshTokenUseCase,
+        user_repository=auth_user_repository,
         token_service=jwt_service
     )
     

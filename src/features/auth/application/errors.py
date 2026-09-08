@@ -17,6 +17,7 @@ class AuthErrorCode(str, Enum):
     INVALID_PASSWORD = "INVALID_PASSWORD"
     ACCOUNT_DISABLED = "ACCOUNT_DISABLED"
     ACCOUNT_LOCKED = "ACCOUNT_LOCKED"
+    INVALID_TOKEN = "INVALID_TOKEN"
     SERVER_ERROR = "SERVER_ERROR"
 
 
@@ -28,6 +29,7 @@ AUTH_ERROR_STATUS = {
     AuthErrorCode.INVALID_PASSWORD: 401,
     AuthErrorCode.ACCOUNT_DISABLED: 403,
     AuthErrorCode.ACCOUNT_LOCKED: 423,
+    AuthErrorCode.INVALID_TOKEN: 401,
     AuthErrorCode.SERVER_ERROR: 500,
 }
 
@@ -40,6 +42,9 @@ AUTH_ERROR_MESSAGES = {
     AuthErrorCode.ACCOUNT_DISABLED: "Tu cuenta está desactivada. Contacta al soporte.",
     AuthErrorCode.ACCOUNT_LOCKED: (
         "Tu cuenta ha sido bloqueada temporalmente por múltiples intentos fallidos."
+    ),
+    AuthErrorCode.INVALID_TOKEN: (
+        "El token de sesión es inválido o ha expirado. Inicia sesión nuevamente."
     ),
     AuthErrorCode.SERVER_ERROR: (
         "Ocurrió un error en el servidor. Intenta nuevamente más tarde."
