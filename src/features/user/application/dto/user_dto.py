@@ -9,6 +9,10 @@ class UserDTO(BaseModel):
     email: EmailStr
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    photo_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -20,4 +24,7 @@ class UpdateUserDTO(BaseModel):
     email: Optional[EmailStr] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    full_name: Optional[str] = None
     phone: Optional[str] = None
+    location: Optional[str] = None
+    photo_url: Optional[str] = None

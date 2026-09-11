@@ -11,6 +11,41 @@ class UserMapper:
     """Maps between User entity, UserModel, and UserDto"""
 
     @staticmethod
+    def _compose_full_name(first_name, last_name) -> str:
+        """Combina first_name y last_name en un solo nombre completo."""
+        parts = [p for p in [first_name, last_name] if p]
+        return " ".join(parts) if parts else None
+
+    @staticmethod
+    def _apply(new_value, current_value):
+        """Devuelve el valor a persistir para un campo opcional de texto.
+
+        - None  -> el campo no se toca (conserva el valor actual).
+        - ""    -> el usuario borró el campo (se limpia a None).
+        - texto -> se guarda el nuevo valor.
+        """
+        if new_value is None:
+            return current_value
+        stripped = new_value.strip()
+        return stripped if stripped else None
+
+    @staticmethod
+    def _split_full_name(full_name: str):
+        """Divide un nombre completo en (first_name, last_name).
+
+        El primer token es first_name; el resto se agrupa en last_name.
+        """
+        if full_name is None:
+            return None, None
+        cleaned = full_name.strip()
+        if not cleaned:
+            return None, None
+        parts = cleaned.split()
+        first = parts[0]
+        last = " ".join(parts[1:]) if len(parts) > 1 else None
+        return first, last
+
+    @staticmethod
     def to_entity(user_model: UserModel) -> User:
         """
         Convierte un UserModel a una entidad User con Email Value Object
@@ -29,6 +64,8 @@ class UserMapper:
                 first_name=user_model.first_name,
                 last_name=user_model.last_name,
                 phone=user_model.phone,
+                location=user_model.location,
+                photo_url=user_model.photo_url,
                 is_active=user_model.is_active,
                 is_verified=user_model.is_verified,
                 reset_token=user_model.reset_token,
@@ -62,6 +99,8 @@ class UserMapper:
                 first_name=user.first_name,
                 last_name=user.last_name,
                 phone=user.phone,
+                location=user.location,
+                photo_url=user.photo_url,
                 is_active=user.is_active,
                 is_verified=user.is_verified,
                 reset_token=user.reset_token,
@@ -91,7 +130,10 @@ class UserMapper:
             email=user_entity.email.value,
             first_name=user_entity.first_name,
             last_name=user_entity.last_name,
+            full_name=UserMapper._compose_full_name(user_entity.first_name, user_entity.last_name),
             phone=user_entity.phone,
+            location=user_entity.location,
+            photo_url=user_entity.photo_url,
             created_at=user_entity.created_at,
             updated_at=user_entity.updated_at
         )
@@ -103,13 +145,25 @@ class UserMapper:
             raise ValueError("Existing User entity cannot be None for update.")
         
         logger.info(f"UserMapper: Before update - existing_entity (username={existing_entity.username}, email={existing_entity.email.value}, phone={existing_entity.phone})")
-        logger.info(f"UserMapper: Update DTO received - update_dto (username={update_dto.username}, email={update_dto.email}, phone={update_dto.phone})")
-            
+        logger.info(f"UserMapper: Update DTO received - update_dto (username={update_dto.username}, full_name={update_dto.full_name}, phone={update_dto.phone}, location={update_dto.location})")
+
         existing_entity.username = update_dto.username if update_dto.username is not None else existing_entity.username
         existing_entity.email = Email(update_dto.email) if update_dto.email is not None else existing_entity.email
-        existing_entity.first_name = update_dto.first_name if update_dto.first_name is not None else existing_entity.first_name
-        existing_entity.last_name = update_dto.last_name if update_dto.last_name is not None else existing_entity.last_name
-        existing_entity.phone = update_dto.phone if update_dto.phone is not None else existing_entity.phone
-        
-        logger.info(f"UserMapper: After update - existing_entity (username={existing_entity.username}, email={existing_entity.email.value}, phone={existing_entity.phone})")
+
+        # full_name tiene prioridad: si el front lo envía, se descompone en
+        # first_name / last_name. Si no, se respetan los campos individuales.
+        # Una cadena vacía se interpreta como "limpiar el campo".
+        if update_dto.full_name is not None:
+            first, last = UserMapper._split_full_name(update_dto.full_name)
+            existing_entity.first_name = first
+            existing_entity.last_name = last
+        else:
+            existing_entity.first_name = update_dto.first_name if update_dto.first_name is not None else existing_entity.first_name
+            existing_entity.last_name = update_dto.last_name if update_dto.last_name is not None else existing_entity.last_name
+
+        existing_entity.phone = UserMapper._apply(update_dto.phone, existing_entity.phone)
+        existing_entity.location = UserMapper._apply(update_dto.location, existing_entity.location)
+        existing_entity.photo_url = UserMapper._apply(update_dto.photo_url, existing_entity.photo_url)
+
+        logger.info(f"UserMapper: After update - existing_entity (username={existing_entity.username}, first_name={existing_entity.first_name}, last_name={existing_entity.last_name}, phone={existing_entity.phone}, location={existing_entity.location})")
         return existing_entity
