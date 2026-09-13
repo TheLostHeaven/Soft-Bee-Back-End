@@ -19,6 +19,8 @@ class User:
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
+    location: Optional[str] = None
+    photo_url: Optional[str] = None
     is_active: bool = True
     is_verified: bool = False
     reset_token: Optional[str] = None

@@ -22,7 +22,7 @@ def get_user(
     try:
         user = get_user_use_case.execute(user_id)
         if user:
-            return jsonify(user.model_dump()), 200
+            return jsonify(user.model_dump(mode='json')), 200
         return jsonify({"error": "User not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -36,7 +36,7 @@ def get_user_full_data(
     try:
         data = get_user_full_data_use_case.execute(user_id)
         if data:
-            return jsonify(data.model_dump()), 200
+            return jsonify(data.model_dump(mode='json')), 200
         return jsonify({"error": "User not found"}), 404
     except Exception as e:
         import traceback
@@ -56,11 +56,14 @@ def update_user(
             email=schema.email,
             first_name=schema.first_name,
             last_name=schema.last_name,
-            phone=schema.phone
+            full_name=schema.full_name,
+            phone=schema.phone,
+            location=schema.location,
+            photo_url=schema.photo_url
         )
         user = update_user_use_case.execute(user_id, update_dto)
         if user:
-            return jsonify(user.model_dump()), 200
+            return jsonify(user.model_dump(mode='json')), 200
         return jsonify({"error": "User not found"}), 404
     except ValidationError as e:
         return jsonify({"errors": e.errors()}), 400

@@ -39,6 +39,8 @@ class UserRepositoryImpl(IUserRepository):
             user_model.first_name = user.first_name
             user_model.last_name = user.last_name
             user_model.phone = user.phone
+            user_model.location = user.location
+            user_model.photo_url = user.photo_url
             user_model.updated_at = datetime.utcnow()
             
             logger.info(f"UserRepositoryImpl: After assignment - user_model (username={user_model.username}, email={user_model.email}, phone={user_model.phone})")

@@ -5,6 +5,7 @@ from src.features.user.infrastructure.repositories.user_repository_impl import U
 from src.features.auth.infrastructure.services.security.jwt_handler import JWTService
 from src.features.auth.application.use_cases.login_user import LoginUserUseCase
 from src.features.auth.application.use_cases.register_user import RegisterUserUseCase
+from src.features.auth.application.use_cases.refresh_token import RefreshTokenUseCase
 
 from src.features.auth.infrastructure.services.email_service_impl import EmailServiceImpl
 
@@ -46,6 +47,7 @@ from src.features.inventory.application.dependency_injection import InventoryCon
 from src.features.questions.infrastructure.repositories.sqlalchemy_question_repository import SQLAlchemyQuestionRepository
 from src.features.questions.application.use_cases.initialize_apiary_questions import InitializeApiaryQuestions
 from src.features.questions.application.use_cases.initialize_hive_questions import InitializeHiveQuestions
+from src.features.questions.application.use_cases.sync_apiary_hive_questions import SyncApiaryHiveQuestions
 from src.features.questions.application.use_cases.get_hive_questions import GetHiveQuestions
 from src.features.questions.application.use_cases.update_hive_question import UpdateHiveQuestion
 from src.features.questions.application.use_cases.delete_hive_question import DeleteHiveQuestion
@@ -156,6 +158,12 @@ class MainContainer(containers.DeclarativeContainer):
         RegisterUserUseCase,
         user_repository=auth_user_repository,
         password_service=password_service,
+        token_service=jwt_service
+    )
+
+    refresh_token_use_case = providers.Factory(
+        RefreshTokenUseCase,
+        user_repository=auth_user_repository,
         token_service=jwt_service
     )
     
@@ -339,6 +347,13 @@ class MainContainer(containers.DeclarativeContainer):
     create_beehive_use_case = providers.Factory(
         CreateBeehiveUseCase,
         repository=beehive_repository,
+        initialize_hive_questions_use_case=initialize_hive_questions_use_case
+    )
+
+    # Reparación idempotente de HiveQuestion para todas las colmenas de un apiario
+    sync_apiary_hive_questions_use_case = providers.Factory(
+        SyncApiaryHiveQuestions,
+        beehive_repository=beehive_repository,
         initialize_hive_questions_use_case=initialize_hive_questions_use_case
     )
 

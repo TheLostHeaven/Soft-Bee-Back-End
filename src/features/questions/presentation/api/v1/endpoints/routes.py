@@ -8,6 +8,7 @@ from src.features.questions.presentation.api.v1.schemas.question_schemas import 
     CreateApiaryQuestionRequestSchema, ApiaryQuestionResponseSchema
 )
 from src.features.questions.application.dto.question_dto import UpdateHiveQuestionDto
+from src.features.auth.presentation.api.v1.dependencies.auth_deps import token_required
 
 # --- APIARY QUESTIONS (El Banco de Preguntas por Apiario) ---
 
@@ -262,5 +263,74 @@ def sync_hive_questions(hive_id: str):
 
     except ValueError:
         return jsonify({"message": "ID de colmena inválido"}), HTTPStatus.BAD_REQUEST
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+# --- REPARACIÓN IDEMPOTENTE DE HIVE QUESTIONS ---
+
+@questions_bp.route("/hive/<string:hive_id>/sync-from-apiary", methods=['POST', 'OPTIONS'])
+@token_required()
+def sync_hive_from_apiary(hive_id: str):
+    """
+    Reparación idempotente para UNA colmena: crea las HiveQuestion faltantes
+    a partir de las ApiaryQuestion activas de su apiario. No duplica las
+    preguntas ya asignadas. Sirve para arreglar colmenas que quedaron sin
+    preguntas (por ejemplo, creadas por sincronización offline) sin recrearlas.
+    """
+    if request.method == 'OPTIONS':
+        return '', 204
+
+    try:
+        from src.features.beehive.domain.exceptions.beehive_exceptions import BeehiveNotFoundException
+
+        hive_uuid = UUID(hive_id)
+
+        # Obtener la colmena para conocer su apiary_id
+        get_beehive = current_app.container.get_beehive_by_id_use_case()
+        try:
+            beehive = get_beehive.execute(hive_uuid)
+        except BeehiveNotFoundException:
+            return jsonify({"message": "Colmena no encontrada"}), HTTPStatus.NOT_FOUND
+
+        initialize = current_app.container.initialize_hive_questions_use_case()
+        hive_questions = initialize.execute(hive_uuid, beehive.apiary_id)
+
+        return jsonify({
+            "message": "Sincronización completada",
+            "hive_id": hive_id,
+            "total_questions": len(hive_questions),
+        }), HTTPStatus.OK
+
+    except ValueError:
+        return jsonify({"message": "ID de colmena inválido"}), HTTPStatus.BAD_REQUEST
+    except Exception as e:
+        return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+@questions_bp.route("/apiary/<string:apiary_id>/sync-hives", methods=['POST', 'OPTIONS'])
+@token_required()
+def sync_hives_from_apiary(apiary_id: str):
+    """
+    Reparación idempotente para TODAS las colmenas de un apiario: crea las
+    HiveQuestion faltantes a partir de las ApiaryQuestion activas del apiario.
+    """
+    if request.method == 'OPTIONS':
+        return '', 204
+
+    try:
+        apiary_uuid = UUID(apiary_id)
+        use_case = current_app.container.sync_apiary_hive_questions_use_case()
+        results = use_case.execute(apiary_uuid)
+
+        return jsonify({
+            "message": "Sincronización completada",
+            "apiary_id": apiary_id,
+            "hives_processed": len(results),
+            "hives": results,
+        }), HTTPStatus.OK
+
+    except ValueError:
+        return jsonify({"message": "ID de apiario inválido"}), HTTPStatus.BAD_REQUEST
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
