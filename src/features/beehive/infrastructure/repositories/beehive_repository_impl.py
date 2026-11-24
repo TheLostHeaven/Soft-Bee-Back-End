@@ -7,6 +7,7 @@ from src.features.beehive.infrastructure.models.beehive_model import BeehiveMode
 from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
 from src.features.beehive.domain.exceptions.beehive_exceptions import BeehiveNotFoundException
 from sqlalchemy.exc import IntegrityError
+from src.core.pagination import Page
 from uuid import UUID
 from enum import Enum
 
@@ -48,8 +49,30 @@ class BeehiveRepositoryImpl(IBeehiveRepository):
         return self._to_entity(beehive) if beehive else None
 
     def get_all_beehives_by_apiary_id(self, apiary_id: UUID) -> List[Beehive]:
-        beehives = self.db_session.query(BeehiveModel).filter(BeehiveModel.apiary_id == apiary_id).all()
+        beehives = (
+            self.db_session.query(BeehiveModel)
+            .filter(BeehiveModel.apiary_id == apiary_id)
+            .order_by(BeehiveModel.hive_number)
+            .all()
+        )
         return [self._to_entity(beehive) for beehive in beehives]
+
+    def get_beehives_by_apiary_id_paginated(self, apiary_id: UUID, limit: int, offset: int) -> Page[Beehive]:
+        query = self.db_session.query(BeehiveModel).filter(BeehiveModel.apiary_id == apiary_id)
+        total = query.count()
+        # hive_number is unique per apiary, so this ordering is stable
+        models = (
+            query.order_by(BeehiveModel.hive_number)
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+        return Page(
+            items=[self._to_entity(model) for model in models],
+            total=total,
+            limit=limit,
+            offset=offset,
+        )
 
     def update_beehive(self, id: UUID, beehive_dto: UpdateBeehiveDTO) -> Beehive:
         beehive = self.db_session.query(BeehiveModel).filter(BeehiveModel.id == id).first()

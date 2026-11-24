@@ -90,6 +90,15 @@ class SQLAlchemyQuestionRepository(QuestionRepository):
             .first()
         return QuestionMapper.hive_to_entity(model) if model else None
 
+    def get_hive_question_by_hive_and_apiary_question(
+        self, hive_id: UUID, apiary_question_id: UUID
+    ) -> Optional[HiveQuestion]:
+        model = self.db_session.query(HiveQuestionModel)\
+            .options(joinedload(HiveQuestionModel.apiary_question))\
+            .filter_by(hive_id=hive_id, apiary_question_id=apiary_question_id)\
+            .first()
+        return QuestionMapper.hive_to_entity(model) if model else None
+
     def update_hive_question(self, question: HiveQuestion) -> HiveQuestion:
         model = self.db_session.query(HiveQuestionModel).filter_by(id=question.id).first()
         if model:

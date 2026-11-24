@@ -11,6 +11,7 @@ from src.features.beehive.presentation.api.v1.schemas.beehive_schemas import (
 from src.features.beehive.domain.exceptions.beehive_exceptions import BeehiveNotFoundException, DuplicateHiveNumberException
 from pydantic import ValidationError
 from uuid import UUID
+from src.core.pagination import PaginationParams
 
 beehive_bp = Blueprint('beehive_bp', __name__, url_prefix='/api/v1/beehives')
 
@@ -46,9 +47,19 @@ def get_beehive_by_id_endpoint(id: UUID):
 @beehive_bp.route("/apiary/<uuid:apiary_id>", methods=['GET'])
 def get_all_beehives_by_apiary_id_endpoint(apiary_id: UUID):
     try:
+        try:
+            params = PaginationParams.from_query_args(request.args)
+        except ValueError as e:
+            return jsonify({"message": str(e)}), HTTPStatus.BAD_REQUEST
+
         get_all_beehives_by_apiary_id_use_case: GetAllBeehivesByApiaryIdUseCase = current_app.container.get_all_beehives_by_apiary_id_use_case()
-        beehives_dto = get_all_beehives_by_apiary_id_use_case.execute(apiary_id)
-        return jsonify([BeehiveResponseSchema.model_validate(beehive).model_dump() for beehive in beehives_dto]), HTTPStatus.OK
+        page = get_all_beehives_by_apiary_id_use_case.execute_paginated(apiary_id, params.limit, params.offset)
+        return jsonify({
+            "items": [BeehiveResponseSchema.model_validate(beehive).model_dump(mode="json") for beehive in page.items],
+            "total": page.total,
+            "limit": page.limit,
+            "offset": page.offset,
+        }), HTTPStatus.OK
     except Exception as e:
         return jsonify({"message": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 

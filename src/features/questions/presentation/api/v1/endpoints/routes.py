@@ -227,25 +227,37 @@ def sync_hive_questions(hive_id: str):
         existing_hive_questions = question_repo.get_hive_questions_by_hive_id(hive_uuid)
         existing_apiary_question_ids = {hq.apiary_question_id for hq in existing_hive_questions}
 
-        # 1. Eliminar asignaciones cuya pregunta del apiario fue desactivada o eliminada
+        # 1. Desactivar (soft-delete) asignaciones cuya pregunta del apiario
+        #    fue desactivada o eliminada. No se borra el registro para
+        #    conservar el histórico y permitir reactivarlas después.
         for hq in existing_hive_questions:
-            if hq.apiary_question_id not in active_apiary_question_ids:
-                question_repo.delete_hive_question(hq.id)
+            if hq.apiary_question_id not in active_apiary_question_ids and hq.is_active:
+                hq.is_active = False
+                question_repo.update_hive_question(hq)
 
-        # 2. Agregar preguntas activas del apiario que no estén asignadas
+        # 2. Agregar/reactivar preguntas activas del apiario según su asignación
+        existing_by_apiary_q = {hq.apiary_question_id: hq for hq in existing_hive_questions}
         max_order = max((hq.display_order for hq in existing_hive_questions), default=0)
         new_hive_questions = []
         for aq in apiary_questions:
-            if aq.is_active and aq.id not in existing_apiary_question_ids:
+            if not aq.is_active:
+                continue
+            existing_hq = existing_by_apiary_q.get(aq.id)
+            if existing_hq is None:
+                # No asignada aún: crear nueva
                 max_order += 1
-                hq = HiveQuestion(
+                new_hive_questions.append(HiveQuestion(
                     id=uuid4(),
                     hive_id=hive_uuid,
                     apiary_question_id=aq.id,
                     display_order=max_order,
                     is_active=True
-                )
-                new_hive_questions.append(hq)
+                ))
+            elif not existing_hq.is_active:
+                # Existe pero fue desactivada por una desactivación previa del
+                # apiario: reactivarla en vez de crear un duplicado.
+                existing_hq.is_active = True
+                question_repo.update_hive_question(existing_hq)
 
         if new_hive_questions:
             question_repo.create_hive_questions_batch(new_hive_questions)

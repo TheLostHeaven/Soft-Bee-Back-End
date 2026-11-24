@@ -53,3 +53,9 @@ class QuestionRepository(ABC):
     @abstractmethod
     def get_hive_question_by_id(self, hive_question_id: UUID) -> Optional[HiveQuestion]:
         pass
+
+    @abstractmethod
+    def get_hive_question_by_hive_and_apiary_question(
+        self, hive_id: UUID, apiary_question_id: UUID
+    ) -> Optional[HiveQuestion]:
+        pass

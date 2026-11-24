@@ -3,6 +3,7 @@ from typing import List, Optional
 from src.features.beehive.domain.entities.beehive import Beehive
 from src.features.beehive.application.dto.beehive_dto import CreateBeehiveDTO, UpdateBeehiveDTO
 from uuid import UUID
+from src.core.pagination import Page
 
 class IBeehiveRepository(ABC):
     @abstractmethod
@@ -15,6 +16,10 @@ class IBeehiveRepository(ABC):
 
     @abstractmethod
     def get_all_beehives_by_apiary_id(self, apiary_id: UUID) -> List[Beehive]:
+        pass
+
+    @abstractmethod
+    def get_beehives_by_apiary_id_paginated(self, apiary_id: UUID, limit: int, offset: int) -> Page[Beehive]:
         pass
 
     @abstractmethod

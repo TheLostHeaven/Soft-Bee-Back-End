@@ -4,6 +4,7 @@ from src.features.apiaries.domain.entities.apiary import Apiary
 from src.features.apiaries.application.interfaces.repositories.apiary_repository import ApiaryRepository
 from src.features.apiaries.application.mappers.apiary_mapper import ApiaryMapper
 from src.features.apiaries.infrastructure.models.apiary_model import ApiaryModel
+from src.core.pagination import Page
 import datetime
 from uuid import UUID
 
@@ -26,6 +27,30 @@ class ApiaryRepositoryImpl(ApiaryRepository):
         apiary_models = self.db_session.query(ApiaryModel).filter_by(user_id=user_id).all()
         return [ApiaryMapper.to_entity(model) for model in apiary_models]
     
+    def get_all_apiaries_paginated(self, limit: int, offset: int) -> Page[Apiary]:
+        query = self.db_session.query(ApiaryModel)
+        return self._paginate(query, limit, offset)
+
+    def get_apiaries_by_user_id_paginated(self, user_id: UUID, limit: int, offset: int) -> Page[Apiary]:
+        query = self.db_session.query(ApiaryModel).filter_by(user_id=user_id)
+        return self._paginate(query, limit, offset)
+
+    def _paginate(self, query, limit: int, offset: int) -> Page[Apiary]:
+        total = query.count()
+        # Stable ordering (id as tie-breaker) so pages never overlap or skip rows
+        models = (
+            query.order_by(ApiaryModel.created_at, ApiaryModel.id)
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+        return Page(
+            items=[ApiaryMapper.to_entity(model) for model in models],
+            total=total,
+            limit=limit,
+            offset=offset,
+        )
+
     def create_apiary(self, apiary: Apiary) -> Apiary:
         apiary_model = ApiaryMapper.to_model(apiary)
         self.db_session.add(apiary_model)

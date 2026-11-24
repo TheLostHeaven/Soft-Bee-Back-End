@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from uuid import UUID
 from src.features.apiaries.domain.entities.apiary import Apiary
+from src.core.pagination import Page
 
 class ApiaryRepository(ABC):
     @abstractmethod
@@ -14,6 +15,14 @@ class ApiaryRepository(ABC):
 
     @abstractmethod
     def get_apiaries_by_user_id(self, user_id: UUID) -> List[Apiary]:
+        pass
+
+    @abstractmethod
+    def get_all_apiaries_paginated(self, limit: int, offset: int) -> Page[Apiary]:
+        pass
+
+    @abstractmethod
+    def get_apiaries_by_user_id_paginated(self, user_id: UUID, limit: int, offset: int) -> Page[Apiary]:
         pass
 
     @abstractmethod
