@@ -24,7 +24,12 @@ class ApiaryRepositoryImpl(ApiaryRepository):
         return ApiaryMapper.to_entity(apiary_model) if apiary_model else None
 
     def get_apiaries_by_user_id(self, user_id: UUID) -> List[Apiary]:
-        apiary_models = self.db_session.query(ApiaryModel).filter_by(user_id=user_id).all()
+        apiary_models = (
+            self.db_session.query(ApiaryModel)
+            .filter_by(user_id=user_id)
+            .order_by(ApiaryModel.created_at, ApiaryModel.id)
+            .all()
+        )
         return [ApiaryMapper.to_entity(model) for model in apiary_models]
     
     def get_all_apiaries_paginated(self, limit: int, offset: int) -> Page[Apiary]:

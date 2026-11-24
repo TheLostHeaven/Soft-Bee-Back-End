@@ -5,6 +5,7 @@ from src.features.maya.presentation.api.v1.endpoints import maya_bp
 from src.features.auth.presentation.api.v1.dependencies.auth_deps import token_required
 from src.features.beehive.presentation.api.v1.schemas.beehive_schemas import BeehiveResponseSchema
 from src.features.apiaries.domain.exceptions.apiary_exceptions import ApiaryNotFoundError
+from src.features.apiaries.presentation.api.v1.schemas.apiary_schemas import ApiaryResponseSchema
 from src.features.beehive.domain.exceptions.beehive_exceptions import BeehiveNotFoundException
 
 
@@ -31,6 +32,36 @@ def _check_hive_access(hive_uuid: UUID):
     if not _user_owns_apiary(apiary):
         return jsonify({"error": FORBIDDEN_MESSAGE}), HTTPStatus.FORBIDDEN
     return None
+
+
+@maya_bp.route("/apiaries", methods=['GET', 'OPTIONS'])
+@token_required()
+def obtener_apiarios_del_usuario():
+    """
+    Devuelve TODOS los apiarios del usuario autenticado, sin paginar.
+    El usuario sale del token, no se recibe por parámetro, así que solo se
+    pueden consultar apiarios propios. Es el primer paso del monitoreo:
+    el usuario elige un apiario y luego se piden sus colmenas con
+    GET /api/v1/maya/apiary/<apiary_id>/hives.
+    """
+    if request.method == 'OPTIONS':
+        return '', 204
+
+    try:
+        current_user_id = getattr(g, 'current_user_id', None)
+        if not current_user_id:
+            return jsonify({"error": FORBIDDEN_MESSAGE}), HTTPStatus.FORBIDDEN
+
+        use_case = current_app.container.get_apiaries_by_user_id_use_case()
+        apiaries = use_case.execute(current_user_id)
+
+        return jsonify({
+            "apiaries": [ApiaryResponseSchema.model_validate(a).model_dump(mode="json") for a in apiaries],
+            "total": len(apiaries)
+        }), HTTPStatus.OK
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 @maya_bp.route("/apiary/<uuid:apiary_id>/hives", methods=['GET', 'OPTIONS'])
